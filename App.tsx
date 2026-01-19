@@ -7,7 +7,7 @@ import {
   ShieldCheck, Compass, Sun, BookOpen, Layers
 } from 'lucide-react';
 import { calculateChart } from './MetaphysicsEngine';
-import { callGeminiAPI } from './geminiService'; 
+import { callGeminiAPI } from './services/geminiService'; 
 import { ChartData, Message, FormData as AppFormData, AIResponse } from './types';
 
 const getAiStudio = () => (window as any).aistudio;
