@@ -5,15 +5,14 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   define: {
-    // 修正：僅替換特定的字串，而非整個物件
-    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || "")
+    // 確保在 Vite 建置時能正確讀取 process.env
+    'process.env': process.env
   },
   resolve: {
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
   },
   build: {
     sourcemap: false,
-    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
