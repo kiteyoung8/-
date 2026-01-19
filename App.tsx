@@ -8,7 +8,8 @@ import {
   ShieldAlert, ClipboardCheck, History, CheckCircle2
 } from 'lucide-react';
 import { calculateChart } from './MetaphysicsEngine';
-import { callConsultationAPI, callConsolidationAPI } from './services/geminiService'; 
+// 修正：匯入路徑改為根目錄
+import { callConsultationAPI, callConsolidationAPI } from './geminiService'; 
 import { ChartData, Message, FormData as AppFormData, AIResponse, ConsultationResponse } from './types';
 
 const getAiStudio = () => (window as any).aistudio;
@@ -20,7 +21,6 @@ const GUIDANCE_QUESTIONS = [
     { label: "健康身心", icon: <Sun size={14}/>, query: "請分析我今年的健康能量狀態，並提供身心平衡建議。" }
 ];
 
-// Fix: Implementation of ZiweiChart component which was missing
 const ZiweiChart = ({ chart, onEdit }: { chart: ChartData, onEdit: () => void }) => {
     return (
         <div className="bg-slate-900/40 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/10 shadow-2xl mb-12 animate-fade-in">
@@ -58,7 +58,6 @@ const ZiweiChart = ({ chart, onEdit }: { chart: ChartData, onEdit: () => void })
                     </div>
                 ))}
                 
-                {/* Center Content Hub */}
                 <div className="col-start-2 col-end-4 row-start-2 row-end-4 flex flex-col items-center justify-center text-center p-8 bg-indigo-600/5 rounded-[2.5rem] border border-indigo-500/10 shadow-inner">
                     <div className="w-16 h-16 bg-indigo-600/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(79,70,229,0.2)]">
                         <StarIcon className="text-indigo-400" size={32} />
@@ -183,7 +182,6 @@ const MagazineReport = ({ data, chart, question, isConsolidated }: { data: AIRes
                     </div>
                 </div>
             </div>
-            {/* 內容區塊 */}
             <div className="magazine-grid mb-32">
                 <div className="col-span-12 md:col-span-8">
                     <div className="magazine-dropcap text-3xl leading-[1.6] text-slate-800 text-justify mb-16 font-medium">
@@ -211,7 +209,6 @@ const MagazineReport = ({ data, chart, question, isConsolidated }: { data: AIRes
                 </div>
             </div>
 
-            {/* Fix: Added grounding sources display for Search compliance */}
             {data.groundingSources && data.groundingSources.length > 0 && (
                 <div className="mt-24 pt-16 border-t border-slate-100">
                     <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-8 flex items-center gap-4">
@@ -300,7 +297,6 @@ export const App = () => {
 
     return (
         <div className="min-h-screen pt-32 pb-[450px] bg-[#050505] flex flex-col items-center">
-            {/* Header */}
             <div className="fixed top-0 left-0 right-0 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 z-40 no-print">
                 <div className="max-w-7xl mx-auto px-12 py-6 flex justify-between items-center">
                     <div className="flex items-center gap-6">
@@ -352,7 +348,6 @@ export const App = () => {
                 )}
             </div>
 
-            {/* Input Bar */}
             <div className="fixed bottom-0 left-0 right-0 p-8 md:p-16 bg-gradient-to-t from-black via-black/95 to-transparent z-50 no-print flex flex-col items-center gap-10">
                 {!consolidatedReport && (
                     <form onSubmit={(e) => { e.preventDefault(); if (input.trim()) { const q = input; setInput(''); performQuery(q); } }} className="w-full max-w-6xl relative group shadow-2xl rounded-[4rem]">
