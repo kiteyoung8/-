@@ -61,7 +61,7 @@ const getZiweiZhi = (bureau: number, day: number): string => {
 };
 
 export const calculateChart = (formData: any): ChartData => {
-    const { name, gender, inputType, birthDate, birthTime } = formData;
+    const { name, gender, birthDate, birthTime } = formData;
     let baseLunar: Lunar;
     let baseSolar: Solar;
     const [hours, minutes] = birthTime.split(':').map(Number);
@@ -108,8 +108,10 @@ export const calculateChart = (formData: any): ChartData => {
     addStar(ZHI[(10 - (lMonth - 1) + 12) % 12], '右弼', 'text-emerald-400', 'aux');
 
     // --- 3. 文昌、文曲 (時) ---
-    addStar(ZHI[(10 - hIdx + 12) % 12], '文昌', 'text-emerald-400', 'aux');
-    addStar(ZHI[(4 + hIdx) % 12], '文曲', 'text-emerald-400', 'aux');
+    const changZhi = ZHI[(10 - hIdx + 12) % 12];
+    const quZhi = ZHI[(4 + hIdx) % 12];
+    addStar(changZhi, '文昌', 'text-emerald-400', 'aux');
+    addStar(quZhi, '文曲', 'text-emerald-400', 'aux');
 
     // --- 4. 天魁、天鉞 (年干) ---
     const kuiYueMap: Record<string, [string, string]> = {
@@ -132,6 +134,44 @@ export const calculateChart = (formData: any): ChartData => {
     if (['亥', '卯', '未'].includes(branch)) fireStart = '酉';
     addStar(ZHI[(ZHI.indexOf(fireStart) + hIdx) % 12], '火星', 'text-red-400', 'minor');
     addStar(ZHI[(ZHI.indexOf('戌') + hIdx) % 12], '鈴星', 'text-red-400', 'minor');
+
+    // --- 7. 新增時辰星曜與神煞 ---
+    // 天姚 (月系): 丑起正月順行
+    addStar(ZHI[(1 + (lMonth - 1)) % 12], '天姚', 'text-pink-400', 'minor');
+    
+    // 解神 (月系)
+    const jieShenMap = ['申', '申', '酉', '酉', '戌', '戌', '亥', '亥', '子', '子', '丑', '丑'];
+    addStar(jieShenMap[lMonth - 1], '解神', 'text-blue-300', 'minor');
+    
+    // 陰煞 (月系): 寅起正月逆行
+    const yinShaMap = ['寅', '子', '戌', '申', '午', '辰', '寅', '子', '戌', '申', '午', '辰'];
+    addStar(yinShaMap[lMonth - 1], '陰煞', 'text-slate-500', 'minor');
+    
+    // 天巫 (月系)
+    const tianWuMap = ['巳', '申', '亥', '寅', '巳', '申', '亥', '寅', '巳', '申', '亥', '寅'];
+    addStar(tianWuMap[lMonth - 1], '天巫', 'text-indigo-400', 'minor');
+
+    // 孤辰、寡宿 (年系)
+    if (['寅', '卯', '辰'].includes(yearZhi)) { addStar('巳', '孤辰', 'text-slate-400', 'minor'); addStar('丑', '寡宿', 'text-slate-400', 'minor'); }
+    else if (['巳', '午', '未'].includes(yearZhi)) { addStar('申', '孤辰', 'text-slate-400', 'minor'); addStar('辰', '寡宿', 'text-slate-400', 'minor'); }
+    else if (['申', '酉', '戌'].includes(yearZhi)) { addStar('亥', '孤辰', 'text-slate-400', 'minor'); addStar('未', '寡宿', 'text-slate-400', 'minor'); }
+    else { addStar('寅', '孤辰', 'text-slate-400', 'minor'); addStar('戌', '寡宿', 'text-slate-400', 'minor'); }
+
+    // 台輔、封誥 (時系)
+    addStar(ZHI[(6 + hIdx) % 12], '台輔', 'text-cyan-400', 'minor');
+    addStar(ZHI[(2 + hIdx) % 12], '封誥', 'text-cyan-400', 'minor');
+    
+    // 恩光、天貴 (昌曲系)
+    addStar(ZHI[(ZHI.indexOf(changZhi) + lDay - 2 + 12) % 12], '恩光', 'text-yellow-300', 'minor');
+    addStar(ZHI[(ZHI.indexOf(quZhi) + lDay - 2 + 12) % 12], '天貴', 'text-yellow-300', 'minor');
+
+    // 博士十二神 (流派: 博士, 力士, 青龍, 小耗, 將軍, 奏書, 飛廉, 喜神, 病符, 大耗, 伏兵, 官府)
+    const boshiNames = ['博士', '力士', '青龍', '小耗', '將軍', '奏書', '飛廉', '喜神', '病符', '大耗', '伏兵', '官府'];
+    const isClockwise = (gender === 'male' && yearGanIdx % 2 === 0) || (gender === 'female' && yearGanIdx % 2 !== 0);
+    boshiNames.forEach((name, i) => {
+        const offset = isClockwise ? i : (12 - i) % 12;
+        addStar(ZHI[(lcIdx + offset) % 12], name, 'text-slate-400', 'minor');
+    });
 
     // --- 四化設定 ---
     const siHuaMap: Record<string, [string, string, string, string]> = {
