@@ -2,12 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ChartData, AIResponse, Message } from "./types";
 
-/**
- * Calls Gemini API to generate analytical content based on ChartData.
- * Implements Google GenAI SDK best practices for structured JSON output and Search grounding.
- */
 export const callGeminiAPI = async (chartData: ChartData, userQuery: string, history: Message[] = []): Promise<AIResponse> => {
-    // API key must be obtained from environment variable.
     const apiKey = process.env.API_KEY;
     
     if (!apiKey || apiKey === "undefined" || apiKey.trim() === "") {
@@ -15,32 +10,28 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
         throw new Error("ENV_KEY_MISSING");
     }
 
-    // Always create a new GoogleGenAI instance right before making an API call.
     const ai = new GoogleGenAI({ apiKey });
     
     const lifePalace = chartData.ziwei.grid.find(p => p.isLifePalace);
     const lifeStars = lifePalace?.stars.map(s => `${s.name}${s.transformation ? `(化${s.transformation})` : ''}`).join('、') || '無主星';
 
     const systemInstruction = `
-    # Role: 東西命理科學總顧問 (融合紫微斗數、西方占星與全球戰略模型)
-    你是一位精通東西方玄學，並具備現代商業分析背景的 AI 顧問。
+    # Role: 全能命理科學總顧問 (基於《紫微斗數精成》與全球戰略模型)
+    你是一位精通東方紫微斗數、玄學，並融合西方占星與現代大數據趨勢的 AI 顧問。
     
     ## 語系要求：
-    **必須使用「繁體中文」進行回覆。**
+    **請務必使用「繁體中文」進行所有回覆。** 嚴禁使用簡體字。
     
     ## 命主數據：
     - 姓名: ${chartData.profile.name}
     - 命宮主星: ${lifeStars}
     - 生肖: ${chartData.ziwei.animal}
-    - 2025 流年: 乙巳年 (天機化祿、天梁化權、紫微化科、太陰化忌)
     - 2026 流年: 丙午年 (天同化祿、天機化權、文昌化科、廉貞化忌)
     
     ## 解析任務：
-    1. **實時趨勢**：利用 googleSearch 獲取 2025 年與 2026 年的全球宏觀趨勢（如 AI 發展、經濟環境）。
-    2. **2025 生肖運勢 (重點新增)**：在 zodiac_fortune 欄位下，針對諮詢者生肖「${chartData.ziwei.animal}」，提供 fortune_2025 內容。
-       - 內容應包含：2025 年的核心運勢、當前生肖在乙巳年需注意的「犯太歲」或「合太歲」影響、以及在年底前應做好的戰略布局。
-    3. **2026 深度解析**：詳細展開丙午年的戰略預測。
-    4. **結構化輸出**：確保輸出為精確的 JSON，且具備雜誌級別的文筆，專業且富有啟發性。
+    1. **實時數據檢索**：針對 2026 年趨勢與全球局勢，必須使用 googleSearch 獲取最新報導與經濟預測。
+    2. **生肖年度運勢 (重要)**：在回覆的 zodiac_fortune 欄位中，根據命主生肖「${chartData.ziwei.animal}」，詳細分析其在 2026 年的事業、財運、健康與人際注意事項。
+    3. **輸出格式**：嚴格遵循 JSON，且所有內容（標題、描述、建議）均需使用繁體中文。
     `;
 
     const responseSchema = {
@@ -62,16 +53,9 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
                     western_zodiac: { type: Type.STRING },
                     summary: { type: Type.STRING },
                     warning: { type: Type.STRING },
-                    fortune_2025: { 
-                        type: Type.STRING, 
-                        description: "諮詢者生肖在 2025 乙巳年的運勢簡析與具體注意事項。" 
-                    },
-                    zodiac_annual_fortune: { 
-                        type: Type.STRING, 
-                        description: "詳細的 2026 丙午年全年度生肖運勢分析。" 
-                    }
+                    zodiac_annual_fortune: { type: Type.STRING, description: "詳細的 2026 年生肖年度運勢分析與注意事項。" }
                 },
-                required: ["animal", "western_zodiac", "summary", "warning", "fortune_2025", "zodiac_annual_fortune"]
+                required: ["animal", "western_zodiac", "summary", "warning", "zodiac_annual_fortune"]
             },
             metaphysical_perspective: {
                 type: Type.OBJECT,
@@ -112,7 +96,7 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
 
     contents.push({
         role: 'user',
-        parts: [{ text: `諮詢問題：${userQuery}` }]
+        parts: [{ text: `當前諮詢問題：${userQuery}` }]
     });
 
     try {
@@ -130,12 +114,13 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
         const text = response.text.trim();
         const result = JSON.parse(text) as AIResponse;
         
+        // 處理 Grounding
         const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
         if (groundingChunks) {
             result.groundingSources = groundingChunks
                 .filter(chunk => chunk.web)
                 .map(chunk => ({
-                    title: chunk.web?.title || '實時數據參考',
+                    title: chunk.web?.title || '外部參考資料',
                     uri: chunk.web?.uri || '#'
                 }));
         }
