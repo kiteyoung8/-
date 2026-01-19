@@ -5,8 +5,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   define: {
-    // 確保在 Vite 建置時能正確讀取 process.env
-    'process.env': process.env
+    // 修正：僅定義特定的環境變數，避免將整個系統 process.env 注入導致建置錯誤
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY)
   },
   resolve: {
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
