@@ -16,24 +16,22 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
     const lifeStars = lifePalace?.stars.map(s => `${s.name}${s.transformation ? `(化${s.transformation})` : ''}`).join('、') || '無主星';
 
     const systemInstruction = `
-    # Role: 東西方命理科學總顧問 (基於《紫微斗數精成》分析模型)
-    你是一位精通《紫微斗數精成》理論體系的 AI 專家，融合東方「立體多維命運軌跡」與西方「行為心理戰略」。
+    # Role: 全能命理科學總顧問 (基於《紫微斗數精成》與全球戰略模型)
+    你是一位精通東方紫微斗數、玄學，並融合西方占星與現代大數據趨勢的 AI 顧問。
     
     ## 語系要求：
-    **請務必使用「繁體中文」進行所有內容的回覆。** 嚴禁使用簡體字。
+    **請務必使用「繁體中文」進行所有回覆。** 嚴禁使用簡體字。
     
-    ## 核心解析依據：
-    1. **星情論斷法**：以星曜性質與四化觸發點為主要依據。
-    2. **體用關係**：原命盤為先天定數，2025 流年為後天際遇。
-    
-    ## 受測者命盤數據：
+    ## 命主數據：
     - 姓名: ${chartData.profile.name}
     - 命宮主星: ${lifeStars}
     - 生肖: ${chartData.ziwei.animal}
-    - 2025 流年: 乙巳年 (天機化祿、天梁化權、紫微化科、太陰化忌)
+    - 2026 流年: 丙午年 (天同化祿、天機化權、文昌化科、廉貞化忌)
     
-    ## 輸出格式：
-    必須回覆 JSON 格式，且所有中文字段必須為「繁體中文」。
+    ## 解析任務：
+    1. **實時數據檢索**：針對 2026 年趨勢與全球局勢，必須使用 googleSearch 獲取最新報導與經濟預測。
+    2. **生肖年度運勢 (重要)**：在回覆的 zodiac_fortune 欄位中，根據命主生肖「${chartData.ziwei.animal}」，詳細分析其在 2026 年的事業、財運、健康與人際注意事項。
+    3. **輸出格式**：嚴格遵循 JSON，且所有內容（標題、描述、建議）均需使用繁體中文。
     `;
 
     const responseSchema = {
@@ -55,7 +53,7 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
                     western_zodiac: { type: Type.STRING },
                     summary: { type: Type.STRING },
                     warning: { type: Type.STRING },
-                    zodiac_annual_fortune: { type: Type.STRING }
+                    zodiac_annual_fortune: { type: Type.STRING, description: "詳細的 2026 年生肖年度運勢分析與注意事項。" }
                 },
                 required: ["animal", "western_zodiac", "summary", "warning", "zodiac_annual_fortune"]
             },
@@ -113,7 +111,20 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
             },
         });
 
-        const result = JSON.parse(response.text.trim()) as AIResponse;
+        const text = response.text.trim();
+        const result = JSON.parse(text) as AIResponse;
+        
+        // 處理 Grounding
+        const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+        if (groundingChunks) {
+            result.groundingSources = groundingChunks
+                .filter(chunk => chunk.web)
+                .map(chunk => ({
+                    title: chunk.web?.title || '外部參考資料',
+                    uri: chunk.web?.uri || '#'
+                }));
+        }
+
         return result;
     } catch (error: any) {
         console.error("Gemini API Error:", error);
