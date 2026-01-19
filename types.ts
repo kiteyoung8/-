@@ -4,7 +4,7 @@ export interface Star {
     type: 'major' | 'minor' | 'aux';
     color: string;
     transformation?: '祿' | '權' | '科' | '忌';
-    status?: string; // 旺、廟、平、陷
+    status?: string; 
 }
 
 export interface PalaceData {
@@ -16,15 +16,15 @@ export interface PalaceData {
     isLifePalace: boolean;
     isBodyPalace: boolean;
     gridArea: string;
-    decades: string; // 大限，如 2-11
-    ages: number[]; // 小限歲數
+    decades: string; 
+    ages: number[]; 
 }
 
 export interface ChartData {
     profile: {
         name: string;
         gender: string;
-        isYang: boolean; // 陽男/陰女 影響大限順逆
+        isYang: boolean; 
     };
     bazi: {
         year: string;
@@ -43,6 +43,10 @@ export interface ChartData {
         siHua: string[];
         grid: PalaceData[];
     };
+    western: {
+        zodiac: string;
+        element: string;
+    };
     display: {
         date: string;
         time: string;
@@ -55,6 +59,13 @@ export interface AIResponse {
         title: string;
         direction: string;
         description: string;
+    };
+    zodiac_fortune: {
+        animal: string;
+        western_zodiac: string;
+        summary: string;
+        warning: string;
+        zodiac_annual_fortune: string;
     };
     metaphysical_perspective: {
         title: string;
@@ -69,12 +80,10 @@ export interface AIResponse {
         type: string;
         content: string;
     }>;
-    // Fix: Added groundingSources to the response type to store search results
     groundingSources?: Array<{
         title: string;
         uri: string;
     }>;
-    model_used?: string;
 }
 
 export interface Message {

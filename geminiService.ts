@@ -3,7 +3,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { ChartData, AIResponse, Message } from "./types";
 
 export const callGeminiAPI = async (chartData: ChartData, userQuery: string, history: Message[] = []): Promise<AIResponse> => {
-    // 在 Vercel 環境中，process.env.API_KEY 會被自動注入
     const apiKey = process.env.API_KEY;
     
     if (!apiKey || apiKey === "undefined" || apiKey.trim() === "") {
@@ -17,18 +16,24 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
     const lifeStars = lifePalace?.stars.map(s => `${s.name}${s.transformation ? `(化${s.transformation})` : ''}`).join('、') || '無主星';
 
     const systemInstruction = `
-    # Role: 全能易經科學諮詢顧問 (Master Metaphysician & Data Scientist)
-    你是一位融合傳統紫微斗數、周易與 2025 年最新全球經濟趨勢的 AI 專家。
+    # Role: 東西方命理科學總顧問 (基於《紫微斗數精成》分析模型)
+    你是一位精通《紫微斗數精成》理論體系的 AI 專家，融合東方「立體多維命運軌跡」與西方「行為心理戰略」。
     
-    ## 受測者命盤特徵：
-    - 命宮宮位: ${chartData.ziwei.lifePalaceZhi}
+    ## 語系要求：
+    **請務必使用「繁體中文」進行所有內容的回覆。** 嚴禁使用簡體字。
+    
+    ## 核心解析依據：
+    1. **星情論斷法**：以星曜性質與四化觸發點為主要依據。
+    2. **體用關係**：原命盤為先天定數，2025 流年為後天際遇。
+    
+    ## 受測者命盤數據：
+    - 姓名: ${chartData.profile.name}
     - 命宮主星: ${lifeStars}
-    - 曆法資訊: ${chartData.display.lunarDetail} (${chartData.ziwei.animal}年)
+    - 生肖: ${chartData.ziwei.animal}
+    - 2025 流年: 乙巳年 (天機化祿、天梁化權、紫微化科、太陰化忌)
     
-    ## 核心指令：
-    1. 對於涉及「2025」、「未來」、「趨勢」的提問，優先使用 googleSearch 工具。
-    2. 解析必須包含：【玄學透視】、【科學解碼】與【實戰改運建議】。
-    3. 必須嚴格以 JSON 格式回覆。
+    ## 輸出格式：
+    必須回覆 JSON 格式，且所有中文字段必須為「繁體中文」。
     `;
 
     const responseSchema = {
@@ -42,6 +47,17 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
                     description: { type: Type.STRING }
                 },
                 required: ["title", "direction", "description"]
+            },
+            zodiac_fortune: {
+                type: Type.OBJECT,
+                properties: {
+                    animal: { type: Type.STRING },
+                    western_zodiac: { type: Type.STRING },
+                    summary: { type: Type.STRING },
+                    warning: { type: Type.STRING },
+                    zodiac_annual_fortune: { type: Type.STRING }
+                },
+                required: ["animal", "western_zodiac", "summary", "warning", "zodiac_annual_fortune"]
             },
             metaphysical_perspective: {
                 type: Type.OBJECT,
@@ -72,7 +88,7 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
                 }
             }
         },
-        required: ["executive_summary", "metaphysical_perspective", "scientific_decoding", "actionable_advice"]
+        required: ["executive_summary", "zodiac_fortune", "metaphysical_perspective", "scientific_decoding", "actionable_advice"]
     };
 
     const contents = history.filter(m => m.type !== 'error').map(m => ({
@@ -82,7 +98,7 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
 
     contents.push({
         role: 'user',
-        parts: [{ text: `使用者提問：${userQuery}` }]
+        parts: [{ text: `當前諮詢問題：${userQuery}` }]
     });
 
     try {
@@ -97,19 +113,7 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
             },
         });
 
-        const text = response.text || "{}";
-        const result = JSON.parse(text.trim()) as AIResponse;
-        
-        const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-        if (groundingChunks) {
-            result.groundingSources = groundingChunks
-                .filter(chunk => chunk.web)
-                .map(chunk => ({
-                    title: chunk.web?.title || '趨勢參考來源',
-                    uri: chunk.web?.uri || '#'
-                }));
-        }
-
+        const result = JSON.parse(response.text.trim()) as AIResponse;
         return result;
     } catch (error: any) {
         console.error("Gemini API Error:", error);
