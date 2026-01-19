@@ -54,13 +54,6 @@ export interface ChartData {
     };
 }
 
-// 輕量化的即時對話響應
-export interface ConsultationResponse {
-    answer: string;
-    key_points: string[];
-    action_advice: string[];
-}
-
 export interface AIResponse {
     executive_summary: {
         title: string;
@@ -73,7 +66,7 @@ export interface AIResponse {
         summary: string;
         warning: string;
         zodiac_annual_fortune: string;
-        fortune_2025: string;
+        fortune_2025: string; // 新增 2025 年簡要運勢
     };
     metaphysical_perspective: {
         title: string;
@@ -88,15 +81,16 @@ export interface AIResponse {
         type: string;
         content: string;
     }>;
-    // Fix: Added groundingSources property to satisfy requirement of listing search URLs
-    groundingSources?: Array<{ title: string; uri: string }>;
+    groundingSources?: Array<{
+        title: string;
+        uri: string;
+    }>;
 }
 
 export interface Message {
     type: 'user' | 'ai' | 'error';
     content?: string;
-    data?: ConsultationResponse; // 諮詢過程中使用輕量資料
-    reportData?: AIResponse;      // 最終報告使用完整資料
+    data?: AIResponse;
     isGreeting?: boolean;
     question?: string;
 }
