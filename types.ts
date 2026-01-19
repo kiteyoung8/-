@@ -69,6 +69,11 @@ export interface AIResponse {
         type: string;
         content: string;
     }>;
+    // Fix: Added groundingSources to the response type to store search results
+    groundingSources?: Array<{
+        title: string;
+        uri: string;
+    }>;
     model_used?: string;
 }
 
