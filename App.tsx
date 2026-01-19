@@ -5,7 +5,7 @@ import {
   Search, Loader2, Key, RefreshCw, AlertTriangle, Download, 
   Zap, TrendingUp, Globe, ArrowRight, FileText, ChevronRight,
   ShieldCheck, Compass, Sun, BookOpen, Layers, Quote, Calendar,
-  ShieldAlert
+  ShieldAlert, ClipboardCheck, History
 } from 'lucide-react';
 import { calculateChart } from './MetaphysicsEngine';
 import { callGeminiAPI } from './geminiService'; 
@@ -199,174 +199,140 @@ const ZiweiChart = ({ chart, onEdit }: { chart: ChartData, onEdit: () => void })
     );
 };
 
-const MagazineReport = ({ data, chart }: { data: AIResponse, chart: ChartData }) => {
-    const reportId = `report-main-content`;
-
-    const handleExport = () => {
-        const element = document.getElementById(reportId);
-        if (!element) return;
-        const opt = {
-            margin: 0,
-            filename: `全能命理戰略報告-2026-${chart.profile.name}.pdf`,
-            image: { type: 'jpeg', quality: 1.0 },
-            html2canvas: { scale: 3, useCORS: true, backgroundColor: '#ffffff' },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        (window as any).html2pdf().set(opt).from(element).save();
-    };
+const MagazineReport = ({ data, chart, question, isConsolidated }: { data: AIResponse, chart: ChartData, question?: string, isConsolidated?: boolean }) => {
+    const reportId = `report-${isConsolidated ? 'consolidated' : 'single'}`;
 
     return (
-        <div className="report-container relative animate-fade-in py-12 w-full max-w-7xl mx-auto px-4 md:px-0">
-             <div className="flex justify-end mb-12 no-print gap-4">
-                <button 
-                    onClick={handleExport}
-                    className="p-6 bg-white hover:bg-slate-100 text-slate-900 rounded-3xl shadow-2xl flex items-center gap-4 transition-all hover:scale-105 active:scale-95 font-black text-sm uppercase tracking-[0.2em] border border-slate-200"
-                >
-                    <Download size={24}/> 下載 PDF 專業版報告
-                </button>
-             </div>
+        <div className={`report-root bg-white text-slate-900 p-8 md:p-24 rounded-[3rem] shadow-[0_50px_100px_rgba(0,0,0,0.1)] relative overflow-hidden border-[1px] border-slate-200 ${isConsolidated ? 'mb-24' : ''}`}>
+            <div className="report-grain absolute inset-0"></div>
+            
+            {/* 標註諮詢問題 */}
+            {question && (
+                <div className="mb-12 p-8 bg-indigo-50 rounded-3xl border-l-[12px] border-indigo-600 flex items-start gap-6">
+                    <History className="text-indigo-600 shrink-0" size={32} />
+                    <div>
+                        <span className="text-[10px] font-sans-bold uppercase text-indigo-400 block mb-2 tracking-widest">諮詢問題回溯</span>
+                        <h4 className="text-2xl font-black text-indigo-900 leading-tight">「{question}」</h4>
+                    </div>
+                </div>
+            )}
 
-            <div id={reportId} className="report-root bg-white text-slate-900 p-8 md:p-24 rounded-[3rem] shadow-[0_50px_100px_rgba(0,0,0,0.1)] relative overflow-hidden border-[1px] border-slate-200">
-                <div className="report-grain absolute inset-0"></div>
-                
-                {/* 高級封面設計節點 */}
-                <div className="flex flex-col mb-32 relative">
-                    <div className="flex justify-between items-start mb-16 border-b-[1px] border-slate-200 pb-8">
-                        <div className="flex flex-col">
-                            <span className="text-[12px] font-sans-bold uppercase tracking-[0.8em] text-indigo-600 mb-2">Strategic Analysis Report</span>
-                            <span className="text-[10px] text-slate-400 font-mono uppercase">Reference: MET-2026-XQ01</span>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-[12px] font-magazine italic text-slate-900 block mb-1">Confidential Edition</span>
-                            <span className="text-[10px] text-slate-400 font-mono uppercase">Date: {new Date().toLocaleDateString()}</span>
+            {/* 高級封面設計節點 */}
+            <div className="flex flex-col mb-32 relative">
+                <div className="flex justify-between items-start mb-16 border-b-[1px] border-slate-200 pb-8">
+                    <div className="flex flex-col">
+                        <span className="text-[12px] font-sans-bold uppercase tracking-[0.8em] text-indigo-600 mb-2">Strategic Analysis Report</span>
+                        <span className="text-[10px] text-slate-400 font-mono uppercase">Reference: MET-2026-XQ{Math.floor(Math.random()*100)}</span>
+                    </div>
+                    <div className="text-right">
+                        <span className="text-[12px] font-magazine italic text-slate-900 block mb-1">Confidential Edition</span>
+                        <span className="text-[10px] text-slate-400 font-mono uppercase">Date: {new Date().toLocaleDateString()}</span>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-end">
+                    <div className="md:col-span-9">
+                        <h1 className="text-7xl md:text-9xl font-magazine italic leading-[0.85] text-slate-900 mb-8 tracking-tighter uppercase break-words">
+                            {data.executive_summary.title}
+                        </h1>
+                    </div>
+                    <div className="md:col-span-3 flex justify-end">
+                         <div className="bg-slate-900 text-white p-10 rounded-full w-48 h-48 flex flex-col items-center justify-center text-center rotate-12 shadow-2xl">
+                            <span className="text-[10px] font-sans-bold uppercase tracking-widest opacity-60 mb-2">Strategy</span>
+                            <span className="text-2xl font-serif-heavy italic leading-tight">{data.executive_summary.direction}</span>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-end">
-                        <div className="md:col-span-9">
-                            <h1 className="text-7xl md:text-9xl font-magazine italic leading-[0.85] text-slate-900 mb-8 tracking-tighter uppercase break-words">
-                                {data.executive_summary.title}
-                            </h1>
-                        </div>
-                        <div className="md:col-span-3 flex justify-end">
-                             <div className="bg-slate-900 text-white p-10 rounded-full w-48 h-48 flex flex-col items-center justify-center text-center rotate-12 shadow-2xl">
-                                <span className="text-[10px] font-sans-bold uppercase tracking-widest opacity-60 mb-2">Strategy</span>
-                                <span className="text-2xl font-serif-heavy italic leading-tight">{data.executive_summary.direction}</span>
+            {/* 數據概要面板 */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-0 mb-32 border-y-[1px] border-slate-900">
+                <div className="p-10 border-r-[1px] border-slate-200 flex flex-col">
+                    <span className="text-[10px] text-slate-400 font-sans-bold uppercase mb-4 tracking-widest">Consultant</span>
+                    <span className="text-2xl font-black italic">AI Oracle V4.1</span>
+                </div>
+                <div className="p-10 border-r-[1px] border-slate-200 flex flex-col bg-slate-50">
+                    <span className="text-[10px] text-slate-400 font-sans-bold uppercase mb-4 tracking-widest">Subject</span>
+                    <span className="text-2xl font-black">{chart.profile.name}</span>
+                </div>
+                <div className="p-10 border-r-[1px] border-slate-200 flex flex-col">
+                    <span className="text-[10px] text-slate-400 font-sans-bold uppercase mb-4 tracking-widest">Astro Matrix</span>
+                    <span className="text-2xl font-black">{chart.ziwei.animal} / {chart.western.zodiac}</span>
+                </div>
+                <div className="p-10 flex flex-col">
+                    <span className="text-[10px] text-slate-400 font-sans-bold uppercase mb-4 tracking-widest">Analysis Year</span>
+                    <span className="text-2xl font-black">2026 丙午</span>
+                </div>
+            </div>
+
+            {/* 2025 運勢深度簡析 */}
+            <div className="mb-24 relative">
+                <div className="absolute -top-6 left-12 px-6 py-2 bg-indigo-600 text-white rounded-full z-10 flex items-center gap-3 shadow-xl">
+                     <ShieldAlert size={18}/>
+                     <span className="text-[10px] font-sans-bold uppercase tracking-widest">Current Phase | 2025</span>
+                </div>
+                <div className="p-12 bg-slate-50 rounded-[4rem] border border-slate-200 shadow-sm flex flex-col md:flex-row gap-12 items-center">
+                    <div className="flex-shrink-0 w-28 h-28 bg-white rounded-[2rem] flex items-center justify-center shadow-inner border border-slate-100">
+                        <Calendar className="text-indigo-600" size={48} />
+                    </div>
+                    <div className="flex-grow">
+                        <h4 className="text-2xl font-serif-heavy text-slate-900 mb-4 border-b border-slate-200 pb-2 inline-block">當前年度戰略定位</h4>
+                        <p className="text-xl md:text-2xl font-medium italic text-slate-700 leading-relaxed font-quote">
+                            {data.zodiac_fortune.fortune_2025}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* 正文內容 */}
+            <div className="magazine-grid mb-32">
+                <div className="col-span-12 md:col-span-8">
+                    <div className="magazine-dropcap text-3xl leading-[1.6] text-slate-800 text-justify mb-16 font-medium">
+                        {data.executive_summary.description}
+                    </div>
+                    <div className="bg-slate-900 text-white p-16 rounded-[4rem] relative overflow-hidden shadow-2xl">
+                         <div className="absolute top-0 right-0 p-8 opacity-10"><Sparkles size={120} /></div>
+                         <h4 className="text-4xl font-serif-heavy italic mb-10 flex items-center gap-6">
+                            <div className="w-12 h-1 border-t-2 border-white/30"></div>
+                            2026 年度專論
+                         </h4>
+                         <div className="space-y-8 text-xl leading-relaxed text-indigo-100">
+                            <div className="pl-8 border-l-2 border-indigo-500/50">
+                                <p className="font-sans-bold text-amber-400 uppercase tracking-widest text-sm mb-4">【年度賦能】</p>
+                                <p className="text-2xl font-bold mb-4">{data.zodiac_fortune?.summary}</p>
+                                <p className="opacity-80 italic">{data.zodiac_fortune?.zodiac_annual_fortune}</p>
+                            </div>
+                         </div>
+                    </div>
+                </div>
+                <div className="col-span-12 md:col-span-4 flex flex-col gap-12">
+                    <div className="p-10 border-[1px] border-slate-200 rounded-[3rem] bg-white shadow-sm">
+                        <span className="text-[10px] font-sans-bold uppercase text-indigo-600 block mb-6 tracking-widest">Insight</span>
+                        <Quote className="text-indigo-600/20 mb-4" size={40} />
+                        <p className="text-2xl font-serif-heavy italic leading-tight text-slate-800">
+                            "{data.zodiac_fortune?.warning}"
+                        </p>
+                    </div>
+                    <div className="p-10 bg-slate-50 rounded-[3rem] border-l-[10px] border-slate-900">
+                         <span className="text-[10px] font-sans-bold uppercase text-slate-400 block mb-6 tracking-widest">Observation</span>
+                         <p className="text-xl italic text-slate-700 font-quote">{data.scientific_decoding.physics}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* 戰略行動模組 */}
+            <div className="pt-24 border-t-[1px] border-slate-200">
+                <h3 className="text-5xl font-magazine italic mb-16 text-slate-900">諮詢建議與戰略執行</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {data.actionable_advice.map((a, idx) => (
+                        <div key={idx} className="group relative bg-white p-12 rounded-[3.5rem] border-[1px] border-slate-100 hover:border-indigo-600 transition-all duration-500 hover:shadow-2xl">
+                            <div className="relative z-10 flex flex-col gap-8">
+                                <span className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black">{idx + 1}</span>
+                                <h5 className="text-[11px] font-sans-bold uppercase tracking-[0.3em] text-indigo-600">{a.type}</h5>
+                                <p className="text-2xl font-black leading-snug text-slate-900">{a.content}</p>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                {/* 數據概要面板 */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-0 mb-32 border-y-[1px] border-slate-900">
-                    <div className="p-10 border-r-[1px] border-slate-200 flex flex-col">
-                        <span className="text-[10px] text-slate-400 font-sans-bold uppercase mb-4 tracking-widest">Consultant</span>
-                        <span className="text-2xl font-black italic">AI Oracle V4.1</span>
-                    </div>
-                    <div className="p-10 border-r-[1px] border-slate-200 flex flex-col bg-slate-50">
-                        <span className="text-[10px] text-slate-400 font-sans-bold uppercase mb-4 tracking-widest">Subject Name</span>
-                        <span className="text-2xl font-black">{chart.profile.name}</span>
-                    </div>
-                    <div className="p-10 border-r-[1px] border-slate-200 flex flex-col">
-                        <span className="text-[10px] text-slate-400 font-sans-bold uppercase mb-4 tracking-widest">Astro Matrix</span>
-                        <span className="text-2xl font-black">{chart.ziwei.animal}年 / {chart.western.zodiac}</span>
-                    </div>
-                    <div className="p-10 flex flex-col">
-                        <span className="text-[10px] text-slate-400 font-sans-bold uppercase mb-4 tracking-widest">Target Year</span>
-                        <span className="text-2xl font-black">2026 丙午</span>
-                    </div>
-                </div>
-
-                {/* 2025 運勢深度簡析區塊 (視覺優化) */}
-                <div className="mb-24 relative">
-                    <div className="absolute -top-6 left-12 px-6 py-2 bg-indigo-600 text-white rounded-full z-10 flex items-center gap-3 shadow-xl">
-                         <ShieldAlert size={18}/>
-                         <span className="text-[10px] font-sans-bold uppercase tracking-widest">Current Phase | 2025 乙巳年</span>
-                    </div>
-                    <div className="p-12 bg-slate-50 rounded-[4rem] border border-slate-200 shadow-sm flex flex-col md:flex-row gap-12 items-center">
-                        <div className="flex-shrink-0 w-28 h-28 bg-white rounded-[2rem] flex items-center justify-center shadow-inner border border-slate-100 group">
-                            <Calendar className="text-indigo-600 group-hover:scale-110 transition-transform" size={48} />
-                        </div>
-                        <div className="flex-grow">
-                            <h4 className="text-2xl font-serif-heavy text-slate-900 mb-4 border-b border-slate-200 pb-2 inline-block">當前年度戰略定位</h4>
-                            <p className="text-xl md:text-2xl font-medium italic text-slate-700 leading-relaxed font-quote">
-                                {data.zodiac_fortune.fortune_2025}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 正文內容 */}
-                <div className="magazine-grid mb-32">
-                    <div className="col-span-12 md:col-span-8">
-                        <div className="magazine-dropcap text-3xl leading-[1.6] text-slate-800 text-justify mb-16 font-medium">
-                            {data.executive_summary.description}
-                        </div>
-                        
-                        <div className="bg-slate-900 text-white p-16 rounded-[4rem] relative overflow-hidden shadow-2xl">
-                             <div className="absolute top-0 right-0 p-8 opacity-10">
-                                <Sparkles size={120} />
-                             </div>
-                             <h4 className="text-4xl font-serif-heavy italic mb-10 flex items-center gap-6">
-                                <div className="w-12 h-1 border-t-2 border-white/30"></div>
-                                2026 年度流年專論
-                             </h4>
-                             <div className="space-y-8 text-xl leading-relaxed text-indigo-100">
-                                <div className="pl-8 border-l-2 border-indigo-500/50">
-                                    <p className="font-sans-bold text-amber-400 uppercase tracking-widest text-sm mb-4">【{data.zodiac_fortune?.animal || chart.ziwei.animal} 生肖賦能】</p>
-                                    <p className="text-2xl font-bold mb-4">{data.zodiac_fortune?.summary}</p>
-                                    <p className="opacity-80 italic">{data.zodiac_fortune?.zodiac_annual_fortune}</p>
-                                </div>
-                             </div>
-                        </div>
-                    </div>
-
-                    <div className="col-span-12 md:col-span-4 flex flex-col gap-12">
-                        <div className="p-10 border-[1px] border-slate-200 rounded-[3rem] bg-white shadow-sm">
-                            <span className="text-[10px] font-sans-bold uppercase text-indigo-600 block mb-6 tracking-widest">Key Insight</span>
-                            <Quote className="text-indigo-600/20 mb-4" size={40} />
-                            <p className="text-2xl font-serif-heavy italic leading-tight text-slate-800">
-                                "{data.zodiac_fortune?.warning || '戰略轉型期需防範過度擴張，建議回歸內核穩步前進。'}"
-                            </p>
-                        </div>
-
-                        <div className="p-10 bg-slate-50 rounded-[3rem] border-l-[10px] border-slate-900">
-                             <span className="text-[10px] font-sans-bold uppercase text-slate-400 block mb-6 tracking-widest">Physics Observation</span>
-                             <p className="text-xl italic text-slate-700 font-quote">
-                                {data.scientific_decoding.physics}
-                             </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 戰略行動模組 */}
-                <div className="pt-24 border-t-[1px] border-slate-200">
-                    <h3 className="text-5xl font-magazine italic mb-16 text-slate-900">諮詢建議與戰略執行</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {data.actionable_advice.map((a, idx) => (
-                            <div key={idx} className="group relative bg-white p-12 rounded-[3.5rem] border-[1px] border-slate-100 hover:border-indigo-600 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
-                                <div className="text-7xl font-magazine text-slate-100 group-hover:text-indigo-50 opacity-100 absolute top-8 right-12 transition-colors">0{idx+1}</div>
-                                <div className="relative z-10 flex flex-col gap-8">
-                                    <span className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black">{idx + 1}</span>
-                                    <h5 className="text-[11px] font-sans-bold uppercase tracking-[0.3em] text-indigo-600">{a.type}</h5>
-                                    <p className="text-2xl font-black leading-snug text-slate-900">
-                                        {a.content}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* 底部署名 */}
-                <div className="mt-32 pt-16 border-t-[1px] border-slate-200 flex justify-between items-end opacity-40 italic">
-                    <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-sans-bold uppercase">Meta-Strategist AI Report</span>
-                        <span className="text-[9px]">Generated by GPT-Hybrid Metaphysics Engine</span>
-                    </div>
-                    <div className="text-right text-[10px] font-mono">
-                        COPYRIGHT © 2026 ALL RIGHTS RESERVED
-                    </div>
+                    ))}
                 </div>
             </div>
         </div>
@@ -405,13 +371,12 @@ const MessageItem = ({ m, onRetryKey, chart, onOutputReport }: { m: Message, onR
                                 </div>
                             </div>
                         </div>
-
                         <div className="pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-8">
                             <button 
                                 onClick={() => onOutputReport(m.data!)}
                                 className="w-full md:w-fit px-16 py-8 bg-white text-slate-900 rounded-[2.5rem] shadow-2xl flex items-center justify-center gap-6 transition-all hover:scale-105 active:scale-95 font-black text-xl uppercase tracking-widest"
                             >
-                                <FileText size={28}/> 輸出完整專業戰略報告
+                                <FileText size={28}/> 檢視本專題報告
                             </button>
                         </div>
                     </div>
@@ -424,14 +389,17 @@ const MessageItem = ({ m, onRetryKey, chart, onOutputReport }: { m: Message, onR
 
 export const App = () => {
     const [chart, setChart] = useState<ChartData | null>(null);
-    const [messages, setMessages] = useState<Message[]>([{ type: 'ai', content: '尊貴的諮詢者，東西方命理混合引擎已就緒。您可以先諮詢特定問題，隨時可以點擊「輸出完整專業報告」獲取 PDF 版本。', isGreeting: true }]);
+    const [messages, setMessages] = useState<Message[]>([{ type: 'ai', content: '尊貴的諮詢者，東西方命理混合引擎已就緒。您可以先諮詢特定問題，最後點擊「匯整全方位戰略檔案」獲取完整 PDF。', isGreeting: true }]);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingState, setLoadingState] = useState<'thinking' | 'searching' | null>(null);
     const [input, setInput] = useState('');
-    const [activeReportData, setActiveReportData] = useState<AIResponse | null>(null);
+    const [activeReportData, setActiveReportData] = useState<{ data: AIResponse, question?: string } | null>(null);
+    const [showConsolidated, setShowConsolidated] = useState(false);
     const endRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isLoading, activeReportData]);
+    const reportHistory = messages.filter(m => m.data && m.question);
+
+    useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isLoading, activeReportData, showConsolidated]);
 
     const performQuery = async (queryText: string) => {
         if (!queryText.trim() || isLoading || !chart) return;
@@ -439,6 +407,7 @@ export const App = () => {
         setMessages(p => [...p, { type: 'user', content: queryText }]);
         setIsLoading(true);
         setActiveReportData(null); 
+        setShowConsolidated(false);
         try { 
             const data = await callGeminiAPI(chart, queryText, messages); 
             setMessages(p => [...p, { type: 'ai', data, question: queryText }]); 
@@ -447,6 +416,19 @@ export const App = () => {
             setMessages(p => [...p, { type: 'error', content: `分析引擎異常：${err.message}` }]); 
         }
         finally { setIsLoading(false); setLoadingState(null); }
+    };
+
+    const handleExportPDF = () => {
+        const element = document.getElementById('full-report-content');
+        if (!element) return;
+        const opt = {
+            margin: 0,
+            filename: `全方位命理戰略報告-2026-${chart?.profile.name}.pdf`,
+            image: { type: 'jpeg', quality: 1.0 },
+            html2canvas: { scale: 3, useCORS: true, backgroundColor: '#ffffff' },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        (window as any).html2pdf().set(opt).from(element).save();
     };
 
     if (!chart) return <InputForm onStart={(d) => setChart(calculateChart(d))} />;
@@ -460,15 +442,12 @@ export const App = () => {
                         <h1 className="text-2xl font-serif-heavy text-white tracking-tighter">東西命理科學顧問</h1>
                     </div>
                     <div className="flex gap-4">
-                        {messages.some(m => m.data) && (
+                        {reportHistory.length > 0 && (
                             <button 
-                                onClick={() => {
-                                    const lastData = [...messages].reverse().find(m => m.data)?.data;
-                                    if (lastData) setActiveReportData(lastData);
-                                }}
-                                className="hidden md:flex items-center gap-3 px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/10 transition-all font-black text-xs uppercase tracking-widest"
+                                onClick={() => { setActiveReportData(null); setShowConsolidated(true); }}
+                                className="hidden md:flex items-center gap-3 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl shadow-xl transition-all font-black text-xs uppercase tracking-widest border border-indigo-400/30"
                             >
-                                <Layers size={18}/> 檢視最後一份報告
+                                <ClipboardCheck size={18}/> 匯整全方位戰略檔案 ({reportHistory.length})
                             </button>
                         )}
                         <button onClick={() => setChart(null)} className="p-4 bg-white/5 hover:bg-white/10 text-slate-400 rounded-2xl border border-white/10 transition-all"><RefreshCw size={24}/></button>
@@ -477,21 +456,64 @@ export const App = () => {
             </div>
 
             <div className="w-full max-w-7xl px-8 space-y-24">
-                {activeReportData ? (
+                {showConsolidated ? (
                     <div className="relative animate-fade-in">
-                        <button onClick={() => setActiveReportData(null)} className="mb-8 flex items-center gap-4 text-slate-400 hover:text-white transition-colors font-black text-sm uppercase tracking-widest px-8 py-4 bg-white/5 rounded-full no-print">
-                            <ArrowRight className="rotate-180" size={20}/> 返回戰略對話
-                        </button>
-                        <MagazineReport data={activeReportData} chart={chart} />
+                        <div className="flex justify-between items-center mb-12 no-print">
+                             <button onClick={() => setShowConsolidated(false)} className="flex items-center gap-4 text-slate-400 hover:text-white transition-colors font-black text-sm uppercase tracking-widest px-8 py-4 bg-white/5 rounded-full">
+                                <ArrowRight className="rotate-180" size={20}/> 返回戰略對話
+                             </button>
+                             <button onClick={handleExportPDF} className="p-6 bg-white hover:bg-slate-100 text-slate-900 rounded-3xl shadow-2xl flex items-center gap-4 transition-all hover:scale-105 active:scale-95 font-black text-sm uppercase tracking-[0.2em] border border-slate-200">
+                                <Download size={24}/> 下載完整 PDF 總結報告
+                             </button>
+                        </div>
+                        <div id="full-report-content" className="bg-slate-100 p-8 md:p-12 rounded-[4rem]">
+                            <div className="text-center py-32 mb-12 bg-white rounded-[4rem] border border-slate-200">
+                                <span className="text-sm font-sans-bold uppercase tracking-[1em] text-indigo-600 block mb-8">Strategic Dossier</span>
+                                <h1 className="text-7xl font-serif-heavy italic text-slate-900 mb-8 uppercase tracking-tighter">全方位人生戰略總結檔案</h1>
+                                <div className="w-24 h-1 bg-slate-900 mx-auto mb-8"></div>
+                                <p className="text-2xl font-magazine text-slate-500 italic">Prepared for {chart.profile.name} • 2026 丙午年專案</p>
+                            </div>
+                            {reportHistory.map((m, idx) => (
+                                <MagazineReport key={idx} data={m.data!} chart={chart} question={m.question} isConsolidated />
+                            ))}
+                        </div>
+                    </div>
+                ) : activeReportData ? (
+                    <div className="relative animate-fade-in">
+                        <div className="flex justify-between items-center mb-8 no-print">
+                             <button onClick={() => setActiveReportData(null)} className="flex items-center gap-4 text-slate-400 hover:text-white transition-colors font-black text-sm uppercase tracking-widest px-8 py-4 bg-white/5 rounded-full">
+                                <ArrowRight className="rotate-180" size={20}/> 返回戰略對話
+                             </button>
+                             <button 
+                                onClick={() => {
+                                    const element = document.getElementById('single-report-content');
+                                    if (!element) return;
+                                    const opt = { margin: 0, filename: `專題報告-${chart?.profile.name}.pdf`, image: { type: 'jpeg', quality: 1.0 }, html2canvas: { scale: 3, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4' } };
+                                    (window as any).html2pdf().set(opt).from(element).save();
+                                }}
+                                className="p-6 bg-white hover:bg-slate-100 text-slate-900 rounded-3xl shadow-2xl flex items-center gap-4 transition-all font-black text-sm border border-slate-200"
+                            >
+                                <Download size={24}/> 下載此專題 PDF
+                            </button>
+                        </div>
+                        <div id="single-report-content">
+                            <MagazineReport data={activeReportData.data} chart={chart} question={activeReportData.question} />
+                        </div>
                     </div>
                 ) : (
                     <>
                         <ZiweiChart chart={chart} onEdit={() => setChart(null)} />
                         <div className="space-y-24">
                             {messages.map((m, i) => (
-                                <MessageItem key={i} m={m} chart={chart} onOutputReport={(data) => setActiveReportData(data)} onRetryKey={async () => { 
-                                    const s = getAiStudio(); if (s) { await s.openSelectKey(); if (m.question) performQuery(m.question); } 
-                                }} />
+                                <MessageItem 
+                                    key={i} 
+                                    m={m} 
+                                    chart={chart} 
+                                    onOutputReport={(data) => setActiveReportData({ data, question: m.question })} 
+                                    onRetryKey={async () => { 
+                                        const s = getAiStudio(); if (s) { await s.openSelectKey(); if (m.question) performQuery(m.question); } 
+                                    }} 
+                                />
                             ))}
                             {isLoading && loadingState && <div className="flex justify-center py-24"><LoadingOverlay state={loadingState} /></div>}
                             <div ref={endRef} className="h-40"/>
@@ -501,14 +523,14 @@ export const App = () => {
             </div>
 
             <div className="fixed bottom-0 left-0 right-0 p-8 md:p-16 bg-gradient-to-t from-black via-black/95 to-transparent z-50 no-print flex flex-col items-center gap-10">
-                {!activeReportData && (
+                {(!activeReportData && !showConsolidated) && (
                     <form onSubmit={(e) => { e.preventDefault(); if (input.trim()) { const q = input; setInput(''); performQuery(q); } }} className="w-full max-w-6xl relative group shadow-2xl rounded-[4rem]">
                         <input value={input} onChange={e => setInput(e.target.value)} disabled={isLoading} placeholder="輸入您的諮詢問題..." className="w-full bg-slate-900/90 backdrop-blur-[50px] border border-white/10 rounded-[4rem] px-16 py-12 text-white outline-none focus:border-indigo-500/50 pr-44 text-xl md:text-3xl placeholder:text-slate-600 font-serif-heavy transition-all" />
                         <button type="submit" disabled={!input.trim() || isLoading} className="absolute right-6 top-6 bottom-6 aspect-square bg-gradient-to-tr from-indigo-600 to-purple-800 text-white rounded-full flex items-center justify-center hover:shadow-[0_0_40px_rgba(79,70,229,0.5)] transition-all disabled:opacity-20 active:scale-90">{isLoading ? <Loader2 className="animate-spin" size={32}/> : <ChevronRight size={48} />}</button>
                     </form>
                 )}
 
-                {!activeReportData && (
+                {(!activeReportData && !showConsolidated) && (
                     <div className="w-full max-w-6xl overflow-x-auto scrollbar-hide flex items-center justify-start md:justify-center gap-6 px-4 pb-4">
                         {GUIDANCE_QUESTIONS.map((g, idx) => (
                             <button key={idx} disabled={isLoading} onClick={() => { performQuery(g.query); }} className="shrink-0 flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-indigo-500/50 px-8 py-6 rounded-full text-slate-300 hover:text-white transition-all hover:scale-105 active:scale-95 shadow-lg"><span className="text-indigo-400">{g.icon}</span><span className="text-sm font-black tracking-widest whitespace-nowrap uppercase">{g.label}</span></button>
@@ -526,6 +548,7 @@ export const App = () => {
                     .no-print { display: none !important; } 
                     body { background: white !important; color: black !important; }
                     .report-grain { display: none !important; }
+                    #full-report-content { background: white !important; padding: 0 !important; }
                 }
             `}</style>
         </div>
