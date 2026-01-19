@@ -1,150 +1,130 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { ChartData, AIResponse, Message } from "./types";
+import { ChartData, AIResponse, ConsultationResponse, Message } from "./types";
 
 /**
- * Calls Gemini API to generate analytical content based on ChartData.
- * Implements Google GenAI SDK best practices for structured JSON output and Search grounding.
+ * 助手函數：獲取 API Key 並初始化 AI
  */
-export const callGeminiAPI = async (chartData: ChartData, userQuery: string, history: Message[] = []): Promise<AIResponse> => {
-    // API key must be obtained from environment variable.
-    const apiKey = process.env.API_KEY;
-    
-    if (!apiKey || apiKey === "undefined" || apiKey.trim() === "") {
-        console.error("Critical: API_KEY is missing in environment.");
-        throw new Error("ENV_KEY_MISSING");
-    }
+const getAIClient = () => {
+    const apiKey = process.env.API_KEY || "";
+    return new GoogleGenAI({ apiKey });
+};
 
-    // Fix: Always create a new GoogleGenAI instance right before making an API call to ensure it always uses the most up-to-date API key.
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+/**
+ * 通用 JSON 提取器：處理模型返回的 Markdown 代碼塊或雜訊
+ */
+const extractJSON = (text: string) => {
+    try {
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) return JSON.parse(jsonMatch[0]);
+        return JSON.parse(text);
+    } catch (e) {
+        console.error("JSON Parsing Error:", text);
+        throw new Error("模型返回格式錯誤，無法解析報告數據。");
+    }
+};
+
+/**
+ * 即時諮詢模式
+ */
+export const callConsultationAPI = async (chartData: ChartData, userQuery: string, history: Message[]): Promise<ConsultationResponse> => {
+    const ai = getAIClient();
     
     const lifePalace = chartData.ziwei.grid.find(p => p.isLifePalace);
     const lifeStars = lifePalace?.stars.map(s => `${s.name}${s.transformation ? `(化${s.transformation})` : ''}`).join('、') || '無主星';
 
     const systemInstruction = `
-    # Role: 東西命理科學總顧問 (融合紫微斗數、西方占星與全球戰略模型)
-    你是一位精通東西方玄學，並具備現代商業分析背景的 AI 顧問。
-    
-    ## 語系要求：
-    **必須使用「繁體中文」進行回覆。**
-    
-    ## 命主數據：
-    - 姓名: ${chartData.profile.name}
-    - 命宮主星: ${lifeStars}
-    - 生肖: ${chartData.ziwei.animal}
-    - 2025 流年: 乙巳年 (天機化祿、天梁化權、紫微化科、太陰化忌)
-    - 2026 流年: 丙午年 (天同化祿、天機化權、文昌化科、廉貞化忌)
-    
-    ## 解析任務：
-    1. **實時趨勢**：利用 googleSearch 獲取 2025 年與 2026 年的全球宏觀趨勢（如 AI 發展、經濟環境）。
-    2. **2025 生肖運勢 (重點新增)**：在 zodiac_fortune 欄位下，針對諮詢者生肖「${chartData.ziwei.animal}」，提供 fortune_2025 內容。
-       - 內容應包含：2025 年的核心運勢、當前生肖在乙巳年需注意的「犯太歲」或「合太歲」影響、以及在年底前應做好的戰略布局。
-    3. **2026 深度解析**：詳細展開丙午年的戰略預測。
-    4. **結構化輸出**：確保輸出為精確的 JSON，且具備雜誌級別的文筆，專業且富有啟發性。
+    你是一位精通東西方命理的「科學顧問」。請針對用戶提問提供即時、精準的文字解答。
+    命主資料：${chartData.profile.name}, 命宮：${lifeStars}, 生肖：${chartData.ziwei.animal}。
+    請直接給出專業解答，並列出 3 個核心行動建議。
+    必須使用繁體中文回覆，格式必須為 JSON。
     `;
 
     const responseSchema = {
         type: Type.OBJECT,
         properties: {
-            executive_summary: {
-                type: Type.OBJECT,
-                properties: {
-                    title: { type: Type.STRING },
-                    direction: { type: Type.STRING },
-                    description: { type: Type.STRING }
-                },
-                required: ["title", "direction", "description"]
-            },
-            zodiac_fortune: {
-                type: Type.OBJECT,
-                properties: {
-                    animal: { type: Type.STRING },
-                    western_zodiac: { type: Type.STRING },
-                    summary: { type: Type.STRING },
-                    warning: { type: Type.STRING },
-                    fortune_2025: { 
-                        type: Type.STRING, 
-                        description: "諮詢者生肖在 2025 乙巳年的運勢簡析與具體注意事項。" 
-                    },
-                    zodiac_annual_fortune: { 
-                        type: Type.STRING, 
-                        description: "詳細的 2026 丙午年全年度生肖運勢分析。" 
-                    }
-                },
-                required: ["animal", "western_zodiac", "summary", "warning", "fortune_2025", "zodiac_annual_fortune"]
-            },
-            metaphysical_perspective: {
-                type: Type.OBJECT,
-                properties: {
-                    title: { type: Type.STRING },
-                    content: { type: Type.STRING }
-                },
-                required: ["title", "content"]
-            },
-            scientific_decoding: {
-                type: Type.OBJECT,
-                properties: {
-                    title: { type: Type.STRING },
-                    psychology: { type: Type.STRING },
-                    physics: { type: Type.STRING }
-                },
-                required: ["title", "psychology", "physics"]
-            },
-            actionable_advice: {
-                type: Type.ARRAY,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        type: { type: Type.STRING },
-                        content: { type: Type.STRING }
-                    },
-                    required: ["type", "content"]
-                }
-            }
+            answer: { type: Type.STRING, description: "對諮詢問題的詳細解答" },
+            key_points: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3個核心洞察點" },
+            action_advice: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3個具體行動建議" }
         },
-        required: ["executive_summary", "zodiac_fortune", "metaphysical_perspective", "scientific_decoding", "actionable_advice"]
+        required: ["answer", "key_points", "action_advice"]
     };
 
-    const contents = history.filter(m => m.type !== 'error').map(m => ({
-        role: m.type === 'user' ? 'user' : 'model',
-        parts: [{ text: m.type === 'user' ? (m.content || '') : (m.data ? JSON.stringify(m.data) : m.content || '') }]
-    }));
-
-    contents.push({
-        role: 'user',
-        parts: [{ text: `諮詢問題：${userQuery}` }]
+    const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview", 
+        contents: [
+            ...history.filter(m => m.data && m.type === 'ai').map(m => ({
+                role: 'model' as const,
+                parts: [{ text: JSON.stringify(m.data) }]
+            })),
+            { role: 'user', parts: [{ text: userQuery }] }
+        ],
+        config: {
+            systemInstruction,
+            responseMimeType: "application/json",
+            responseSchema
+        }
     });
 
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-3-pro-preview",
-            contents,
-            config: {
-                systemInstruction,
-                responseMimeType: "application/json",
-                responseSchema,
-                tools: [{ googleSearch: {} }]
-            },
-        });
+    return extractJSON(response.text) as ConsultationResponse;
+};
 
-        // Fix: Use .text property instead of .text()
-        const text = response.text.trim();
-        const result = JSON.parse(text) as AIResponse;
-        
-        const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-        if (groundingChunks) {
-            // Fix: This assignment now works after updating types.ts
-            result.groundingSources = groundingChunks
-                .filter(chunk => chunk.web)
-                .map(chunk => ({
-                    title: chunk.web?.title || '實時數據參考',
-                    uri: chunk.web?.uri || '#'
-                }));
-        }
+/**
+ * 深度彙整模式：合成完整的戰略報告
+ */
+export const callConsolidationAPI = async (chartData: ChartData, history: Message[]): Promise<AIResponse> => {
+    const ai = getAIClient();
+    
+    // 修正歷史提取邏輯：確保有問題與答案的對應關係
+    const chatLog = history
+        .filter(m => m.data && m.question)
+        .map(m => `諮詢問題: ${m.question}\n專家建議: ${m.data?.answer}`)
+        .join('\n\n');
 
-        return result;
-    } catch (error: any) {
-        console.error("Gemini API Error:", error);
-        throw error;
+    if (!chatLog) {
+        throw new Error("對話歷史不完整，無法匯整報告。請先與專家進行諮詢。");
     }
+    
+    const systemInstruction = `
+    # Role: 東西命理科學總顧問
+    任務：將提供的對話紀錄彙整成一份高品質的「2026 年度人生戰略總結報告」。
+    
+    命主背景：${chartData.profile.name}, 生肖：${chartData.ziwei.animal}, 星座：${chartData.western.zodiac}。
+    
+    要求：
+    1. 深入分析對話紀錄中的核心痛點與建議。
+    2. 使用 Google Search 獲取 2026 年全球宏觀趨勢（AI、經濟、生活方式）。
+    3. 合成一份極具商業雜誌質感的 JSON 戰略報告。
+    
+    必須使用繁體中文回覆。請直接返回 JSON，不要包含任何 Markdown 代碼塊標記。
+    `;
+
+    const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview", 
+        contents: [{ 
+            role: 'user', 
+            parts: [{ text: `請根據以下諮詢紀錄與 2026 趨勢，生成年度總結報告 JSON：\n\n${chatLog}` }] 
+        }],
+        config: {
+            systemInstruction,
+            // 這裡移除 responseSchema 是因為 googleSearch 可能會產生非 JSON 的內容導致 schema 校驗失敗
+            // 我們改用 extractJSON 手動解析
+            tools: [{ googleSearch: {} }]
+        }
+    });
+
+    const result = extractJSON(response.text) as AIResponse;
+    
+    // 處理引用來源
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+    if (groundingChunks) {
+        result.groundingSources = groundingChunks
+            .filter(chunk => chunk.web)
+            .map(chunk => ({
+                title: chunk.web?.title || '趨勢觀察數據來源',
+                uri: chunk.web?.uri || '#'
+            }));
+    }
+
+    return result;
 };

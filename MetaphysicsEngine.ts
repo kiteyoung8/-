@@ -6,14 +6,6 @@ const GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸
 const ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
 const PALACE_NAMES = ['命宮', '兄弟', '夫妻', '子女', '財帛', '疾厄', '遷移', '交友', '官祿', '田宅', '福德', '父母'];
 
-// 生肖繁體中文映射表
-const ZODIAC_TRADITIONAL: Record<string, string> = {
-    '鼠': '鼠', '牛': '牛', '虎': '虎', '兔': '兔', '龍': '龍', '蛇': '蛇',
-    '馬': '馬', '羊': '羊', '猴': '猴', '雞': '雞', '狗': '狗', '豬': '豬',
-    // Fix: Removed duplicate '狗': '狗' which caused an object literal error on line 13.
-    '龙': '龍', '马': '馬', '鸡': '雞', '猪': '豬'
-};
-
 const MAJOR_STARS_TABLE: Record<string, string[]> = {
     '子': ['亥', '酉', '申', '未', '辰', '辰', '巳', '午', '未', '申', '酉', '戌', '寅'],
     '丑': ['子', '戌', '酉', '申', '巳', '卯', '辰', '巳', '午', '未', '申', '酉', '丑'],
@@ -34,14 +26,6 @@ const ZHI_GRID_AREA: Record<string, string> = {
     '辰': '2 / 1 / 3 / 2', '酉': '2 / 4 / 3 / 5', 
     '卯': '3 / 1 / 4 / 2', '戌': '3 / 4 / 4 / 5',
     '寅': '4 / 1 / 5 / 2', '丑': '4 / 2 / 5 / 3', '子': '4 / 3 / 5 / 4', '亥': '4 / 4 / 5 / 5'
-};
-
-const getWesternZodiac = (month: number, day: number) => {
-    const dates = [20, 19, 21, 20, 21, 21, 23, 23, 23, 23, 22, 22];
-    const signs = ["摩羯座", "水瓶座", "雙魚座", "牡羊座", "金牛座", "雙子座", "巨蟹座", "獅子座", "處女座", "天秤座", "天蠍座", "射手座"];
-    const elements = ["土象", "風象", "水象", "火象", "土象", "風象", "水象", "火象", "土象", "風象", "水象", "火象"];
-    const idx = (day < dates[month - 1]) ? (month - 1) : (month % 12);
-    return { name: signs[idx], element: elements[idx] };
 };
 
 const getBureau = (pGan: string, pZhi: string): { val: number; name: string } => {
@@ -69,14 +53,16 @@ const getZiweiZhi = (bureau: number, day: number): string => {
 };
 
 export const calculateChart = (formData: any): ChartData => {
-    const { name, gender, birthDate, birthTime } = formData;
+    const { name, gender, inputType, birthDate, birthTime, lunarYear, lunarMonth, lunarDay } = formData;
     let baseLunar: Lunar;
-    let baseSolar: Solar;
     const [hours, minutes] = birthTime.split(':').map(Number);
     
-    const [y, m, d] = birthDate.split('-').map(Number);
-    baseSolar = Solar.fromYmdHms(y, m, d, hours, minutes, 0);
-    baseLunar = baseSolar.getLunar();
+    if (inputType === 'solar') {
+        const [y, m, d] = birthDate.split('-').map(Number);
+        baseLunar = Solar.fromYmdHms(y, m, d, hours, minutes, 0).getLunar();
+    } else {
+        baseLunar = Lunar.fromYmdHms(parseInt(lunarYear), parseInt(lunarMonth), parseInt(lunarDay), hours, minutes, 0);
+    }
 
     const hIdx = Math.floor((hours + 1) / 2) % 12; 
     const lMonth = baseLunar.getMonth();
@@ -95,91 +81,49 @@ export const calculateChart = (formData: any): ChartData => {
     const bureau = getBureau(getPalaceGan(lifeIdx), ZHI[lifeIdx]);
     const zwZhi = getZiweiZhi(bureau.val, lDay);
 
-    const westernZodiac = getWesternZodiac(baseSolar.getMonth(), baseSolar.getDay());
-
     const auxStars: Record<string, Star[]> = {};
-    const addStar = (palaceZhi: string, starName: string, color: string, type: 'major' | 'minor' | 'aux') => {
+    const addAux = (palaceZhi: string, starName: string, color: string, type: 'minor' | 'aux' = 'minor') => {
         if (!auxStars[palaceZhi]) auxStars[palaceZhi] = [];
         auxStars[palaceZhi].push({ name: starName, type, color });
     };
 
-    // --- 1. 祿存、擎羊、陀羅 (年干) ---
+    // 1. 祿存、羊、陀 (年干)
     const luCunMap: Record<string, string> = { '甲':'寅', '乙':'卯', '丙':'巳', '丁':'午', '戊':'巳', '己':'午', '庚':'申', '辛':'酉', '壬':'亥', '癸':'子' };
     const lcZhi = luCunMap[yearGan];
     const lcIdx = ZHI.indexOf(lcZhi);
-    addStar(lcZhi, '祿存', 'text-amber-300', 'aux');
-    addStar(ZHI[(lcIdx + 1) % 12], '擎羊', 'text-red-400', 'minor');
-    addStar(ZHI[(lcIdx - 1 + 12) % 12], '陀羅', 'text-red-400', 'minor');
+    addAux(lcZhi, '祿存', 'text-amber-300', 'aux');
+    addAux(ZHI[(lcIdx + 1) % 12], '擎羊', 'text-red-400', 'minor');
+    addAux(ZHI[(lcIdx - 1 + 12) % 12], '陀羅', 'text-red-400', 'minor');
 
-    // --- 2. 左輔、右弼 (月) ---
-    addStar(ZHI[(4 + (lMonth - 1)) % 12], '左輔', 'text-emerald-400', 'aux');
-    addStar(ZHI[(10 - (lMonth - 1) + 12) % 12], '右弼', 'text-emerald-400', 'aux');
+    // 2. 左輔、右弼 (月)
+    addAux(ZHI[(4 + (lMonth - 1)) % 12], '左輔', 'text-emerald-400', 'aux');
+    addAux(ZHI[(10 - (lMonth - 1) + 12) % 12], '右弼', 'text-emerald-400', 'aux');
 
-    // --- 3. 文昌、文曲 (時) ---
-    const changZhi = ZHI[(10 - hIdx + 12) % 12];
-    const quZhi = ZHI[(4 + hIdx) % 12];
-    addStar(changZhi, '文昌', 'text-emerald-400', 'aux');
-    addStar(quZhi, '文曲', 'text-emerald-400', 'aux');
+    // 3. 文昌、文曲 (時)
+    addAux(ZHI[(10 - hIdx + 12) % 12], '文昌', 'text-cyan-400', 'aux');
+    addAux(ZHI[(4 + hIdx) % 12], '文曲', 'text-cyan-400', 'aux');
 
-    // --- 4. 天魁、天鉞 (年干) ---
-    const kuiYueMap: Record<string, [string, string]> = {
-        '甲': ['丑', '未'], '乙': ['子', '申'], '丙': ['亥', '酉'], '丁': ['亥', '酉'],
-        '戊': ['丑', '未'], '己': ['子', '申'], '庚': ['丑', '未'], '辛': ['午', '寅'],
-        '壬': ['卯', '巳'], '癸': ['卯', '巳']
+    // 4. 天魁、天鉞 (年干)
+    const kuiYueMap: Record<string, [string, string]> = { 
+        '甲':['未','丑'], '乙':['申','子'], '丙':['亥','酉'], '丁':['亥','酉'], '戊':['未','丑'], 
+        '己':['未','丑'], '庚':['丑','未'], '辛':['午','寅'], '壬':['卯','巳'], '癸':['卯','巳'] 
     };
-    const [kui, yue] = kuiYueMap[yearGan];
-    addStar(kui, '天魁', 'text-emerald-400', 'aux');
-    addStar(yue, '天鉞', 'text-emerald-400', 'aux');
+    addAux(kuiYueMap[yearGan][0], '天魁', 'text-orange-400', 'aux');
+    addAux(kuiYueMap[yearGan][1], '天鉞', 'text-orange-400', 'aux');
 
-    // --- 5. 地空、地劫 (時) ---
-    addStar(ZHI[(11 + hIdx) % 12], '地劫', 'text-red-400', 'minor');
-    addStar(ZHI[(11 - hIdx + 12) % 12], '地空', 'text-red-400', 'minor');
+    // 5. 地空、地劫 (時)
+    addAux(ZHI[(11 - hIdx + 12) % 12], '地空', 'text-slate-400', 'minor');
+    addAux(ZHI[(11 + hIdx) % 12], '地劫', 'text-slate-400', 'minor');
 
-    // --- 6. 火星、鈴星 (年支 + 時) ---
-    const branch = baseLunar.getYearZhi();
-    let fireStart = '寅';
-    if (['巳', '酉', '丑'].includes(branch)) fireStart = '卯';
-    if (['亥', '卯', '未'].includes(branch)) fireStart = '酉';
-    addStar(ZHI[(ZHI.indexOf(fireStart) + hIdx) % 12], '火星', 'text-red-400', 'minor');
-    addStar(ZHI[(ZHI.indexOf('戌') + hIdx) % 12], '鈴星', 'text-red-400', 'minor');
-
-    // --- 7. 新增時辰星曜與神煞 ---
-    // 天姚 (月系)
-    addStar(ZHI[(1 + (lMonth - 1)) % 12], '天姚', 'text-pink-400', 'minor');
+    // 6. 火星、鈴星 (年支 + 時)
+    let huoStart = '', lingStart = '';
+    if (['寅','午','戌'].includes(yearZhi)) { huoStart = '丑'; lingStart = '卯'; }
+    else if (['申','子','辰'].includes(yearZhi)) { huoStart = '寅'; lingStart = '戌'; }
+    else if (['巳','酉','丑'].includes(yearZhi)) { huoStart = '卯'; lingStart = '戌'; }
+    else if (['亥','卯','未'].includes(yearZhi)) { huoStart = '酉'; lingStart = '戌'; }
     
-    // 解神 (月系)
-    const jieShenMap = ['申', '申', '酉', '酉', '戌', '戌', '亥', '亥', '子', '子', '丑', '丑'];
-    addStar(jieShenMap[lMonth - 1], '解神', 'text-blue-300', 'minor');
-    
-    // 陰煞 (月系)
-    const yinShaMap = ['寅', '子', '戌', '申', '午', '辰', '寅', '子', '戌', '申', '午', '辰'];
-    addStar(yinShaMap[lMonth - 1], '陰煞', 'text-slate-500', 'minor');
-    
-    // 天巫 (月系)
-    const tianWuMap = ['巳', '申', '亥', '寅', '巳', '申', '亥', '寅', '巳', '申', '亥', '寅'];
-    addStar(tianWuMap[lMonth - 1], '天巫', 'text-indigo-400', 'minor');
-
-    // 孤辰、寡宿 (年系)
-    if (['寅', '卯', '辰'].includes(yearZhi)) { addStar('巳', '孤辰', 'text-slate-400', 'minor'); addStar('丑', '寡宿', 'text-slate-400', 'minor'); }
-    else if (['巳', '午', '未'].includes(yearZhi)) { addStar('申', '孤辰', 'text-slate-400', 'minor'); addStar('辰', '寡宿', 'text-slate-400', 'minor'); }
-    else if (['申', '酉', '戌'].includes(yearZhi)) { addStar('亥', '孤辰', 'text-slate-400', 'minor'); addStar('未', '寡宿', 'text-slate-400', 'minor'); }
-    else { addStar('寅', '孤辰', 'text-slate-400', 'minor'); addStar('戌', '寡宿', 'text-slate-400', 'minor'); }
-
-    // 台輔、封誥 (時系)
-    addStar(ZHI[(6 + hIdx) % 12], '台輔', 'text-cyan-400', 'minor');
-    addStar(ZHI[(2 + hIdx) % 12], '封誥', 'text-cyan-400', 'minor');
-    
-    // 恩光、天貴 (昌曲系)
-    addStar(ZHI[(ZHI.indexOf(changZhi) + lDay - 2 + 12) % 12], '恩光', 'text-yellow-300', 'minor');
-    addStar(ZHI[(ZHI.indexOf(quZhi) + lDay - 2 + 12) % 12], '天貴', 'text-yellow-300', 'minor');
-
-    // 博士十二神
-    const boshiNames = ['博士', '力士', '青龍', '小耗', '將軍', '奏書', '飛廉', '喜神', '病符', '大耗', '伏兵', '官府'];
-    const isClockwise = (gender === 'male' && yearGanIdx % 2 === 0) || (gender === 'female' && yearGanIdx % 2 !== 0);
-    boshiNames.forEach((name, i) => {
-        const offset = isClockwise ? i : (12 - i) % 12;
-        addStar(ZHI[(lcIdx + offset) % 12], name, 'text-slate-400', 'minor');
-    });
+    addAux(ZHI[(ZHI.indexOf(huoStart) + hIdx) % 12], '火星', 'text-red-500', 'minor');
+    addAux(ZHI[(ZHI.indexOf(lingStart) + hIdx) % 12], '鈴星', 'text-red-500', 'minor');
 
     const siHuaMap: Record<string, [string, string, string, string]> = {
         '甲': ['廉貞','破軍','武曲','太陽'], '乙': ['天機','天梁','紫微','太陰'], '丙': ['天同','天機','文昌','廉貞'],
@@ -214,10 +158,6 @@ export const calculateChart = (formData: any): ChartData => {
         });
     }
 
-    // 確保生肖輸出為繁體中文
-    const rawAnimal = baseLunar.getYearShengXiao();
-    const animalTraditional = ZODIAC_TRADITIONAL[rawAnimal] || rawAnimal;
-
     return {
         profile: { name, gender, isYang: yearGanIdx % 2 === 0 },
         bazi: { 
@@ -228,12 +168,8 @@ export const calculateChart = (formData: any): ChartData => {
         },
         ziwei: {
             lifePalaceZhi: ZHI[lifeIdx], bodyPalaceZhi: ZHI[bodyIdx], bureau: bureau.name, mingZhu: '未知', shenZhu: '未知',
-            animal: animalTraditional, fiveElements: bureau.name.substring(0, 1), 
+            animal: baseLunar.getYearShengXiao(), fiveElements: bureau.name.substring(0, 1), 
             siHua: siHuaNames.map((n, idx) => `${n}化${siHuaTypes[idx]}`), grid
-        },
-        western: {
-            zodiac: westernZodiac.name,
-            element: westernZodiac.element
         },
         display: { 
             date: birthDate, 

@@ -1,383 +1,319 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Send, Sparkles, Moon, Brain, Star as StarIcon, Edit3,
-  Search, Loader2, Key, RefreshCw, AlertTriangle, Download, 
-  Zap, TrendingUp, Globe, ArrowRight, FileText, ChevronRight,
-  ShieldCheck, Compass, Sun, BookOpen, Layers, Quote, Calendar,
-  ShieldAlert, ClipboardCheck, History, CheckCircle2
+  Send, Sparkles, FileText, Download, 
+  ArrowRight, Moon, Brain, CheckCircle2,
+  ChevronRight, Info, Calendar, Star, Edit3,
+  Printer, ArrowLeft, Sun, Shield, Zap, Heart,
+  Gem, Compass, Target, TrendingUp, UserSearch, Briefcase, Search, ExternalLink, Loader2, Key
 } from 'lucide-react';
 import { calculateChart } from './MetaphysicsEngine';
-import { callConsultationAPI, callConsolidationAPI } from './services/geminiService'; 
-import { ChartData, Message, FormData as AppFormData, AIResponse, ConsultationResponse } from './types';
+import { callGeminiAPI } from './services/geminiService';
+import { ChartData, Message, FormData as AppFormData, PalaceData, AIResponse, Star as StarType } from './types';
 
-const getAiStudio = () => (window as any).aistudio;
-
-const GUIDANCE_QUESTIONS = [
-    { label: "2026 整體運勢", icon: <Sparkles size={14}/>, query: "請深度分析我 2026 年的整體運勢軌跡與核心戰略建議。" },
-    { label: "事業財富", icon: <TrendingUp size={14}/>, query: "我 2026 年的財富增長點在哪裡？有哪些潛在機會或危機？" },
-    { label: "感情人際", icon: <Moon size={14}/>, query: "針對我的命盤，今年在感情與人際關係上需要調整什麼？" },
-    { label: "健康身心", icon: <Sun size={14}/>, query: "請分析我今年的健康能量狀態，並提供身心平衡建議。" }
-];
-
-// Fix: Implementation of ZiweiChart component which was missing
+// --- Component: ZiweiChart ---
 const ZiweiChart = ({ chart, onEdit }: { chart: ChartData, onEdit: () => void }) => {
     return (
-        <div className="bg-slate-900/40 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/10 shadow-2xl mb-12 animate-fade-in">
-            <div className="flex justify-between items-center mb-8 px-4">
-                <div className="flex items-center gap-4">
-                    <Compass className="text-indigo-400" size={24} />
-                    <h2 className="text-xl font-serif-heavy text-white italic">紫微斗數命盤矩陣</h2>
-                </div>
-                <div className="text-right text-[10px] text-slate-500 font-mono tracking-widest uppercase">
-                    Ref: {chart.bazi.year} {chart.bazi.month} {chart.bazi.day} {chart.bazi.hour}
-                </div>
-            </div>
-            
-            <div className="grid grid-cols-4 grid-rows-4 gap-2 aspect-square md:aspect-auto md:h-[700px] relative">
-                {chart.ziwei.grid.map((p, idx) => (
-                    <div key={idx} style={{ gridArea: p.gridArea }} className={`p-4 border border-white/5 rounded-2xl flex flex-col justify-between transition-all hover:bg-white/5 ${p.isLifePalace ? 'bg-indigo-600/10 border-indigo-500/30 ring-1 ring-indigo-500/20 shadow-[0_0_30px_rgba(79,70,229,0.1)]' : 'bg-slate-900/40'}`}>
-                        <div className="flex justify-between items-start mb-2">
-                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg tracking-wider ${p.isLifePalace ? 'bg-indigo-600 text-white' : 'bg-white/10 text-slate-400'}`}>{p.name}</span>
-                            <span className="text-[9px] font-mono text-slate-600">{p.gan}{p.zhi}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-x-2 gap-y-1 mb-2">
-                            {p.stars.map((s, si) => (
-                                <div key={si} className={`flex flex-col items-center leading-none ${s.color}`}>
-                                    <span className={`text-sm md:text-base font-bold ${s.type === 'major' ? 'font-serif-heavy italic' : ''}`}>{s.name}</span>
-                                    {s.transformation && <span className="text-[7px] bg-white/10 px-1 rounded-sm mt-0.5">化{s.transformation}</span>}
-                                </div>
-                            ))}
-                        </div>
-                        <div className="flex justify-between items-end mt-auto text-[8px] font-mono text-slate-600 uppercase tracking-tighter">
-                            <span>{p.decades}歲</span>
-                            <div className="flex gap-1">
-                                {p.isBodyPalace && <span className="bg-purple-900/40 text-purple-400 px-1 rounded">身宮</span>}
+        <div className="grid grid-cols-4 grid-rows-4 gap-1 md:gap-2 h-[500px] md:h-[600px] w-full bg-slate-900/40 p-2 md:p-4 rounded-3xl relative overflow-hidden ring-1 ring-white/10 shadow-inner">
+            {chart.ziwei.grid.map((palace) => (
+                <div 
+                    key={palace.zhi} 
+                    style={{ gridArea: palace.gridArea }}
+                    className={`border border-white/5 p-2 flex flex-col relative transition-all duration-500 rounded-xl ${palace.isLifePalace ? 'bg-indigo-600/20 ring-1 ring-indigo-500/40' : 'bg-slate-800/40 hover:bg-slate-800/60'}`}
+                >
+                    <div className="text-[9px] text-slate-500 absolute top-1 right-2 font-mono uppercase">{palace.zhi}</div>
+                    <div className={`text-xs font-black border-b pb-1 mb-2 ${palace.isLifePalace ? 'text-indigo-300 border-indigo-500/30' : 'text-amber-500/80 border-white/5'}`}>
+                        {palace.name}
+                    </div>
+                    <div className="flex flex-col gap-0.5 overflow-y-auto max-h-[70%] scrollbar-hide">
+                        {palace.stars.map((star, idx) => (
+                            <div key={idx} className={`text-[10px] md:text-[11px] leading-tight flex items-center gap-1 font-medium ${star.color}`}>
+                                <span className="truncate">{star.name}</span>
+                                {star.transformation && (
+                                    <span className="bg-red-500/80 text-white text-[8px] px-1 rounded ml-auto scale-90">
+                                        {star.transformation}
+                                    </span>
+                                )}
                             </div>
-                        </div>
+                        ))}
                     </div>
-                ))}
-                
-                {/* Center Content Hub */}
-                <div className="col-start-2 col-end-4 row-start-2 row-end-4 flex flex-col items-center justify-center text-center p-8 bg-indigo-600/5 rounded-[2.5rem] border border-indigo-500/10 shadow-inner">
-                    <div className="w-16 h-16 bg-indigo-600/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(79,70,229,0.2)]">
-                        <StarIcon className="text-indigo-400" size={32} />
+                    <div className="mt-auto text-[9px] text-slate-500 flex justify-between items-center pt-1 border-t border-white/5 opacity-70">
+                        <span>{palace.decades}</span>
+                        <span className="font-bold">{palace.gan}</span>
                     </div>
-                    <h3 className="text-4xl font-serif-heavy text-white mb-3 italic tracking-tighter">{chart.profile.name}</h3>
-                    <div className="flex flex-wrap justify-center gap-2 mb-6">
-                        <span className="text-[10px] font-black bg-indigo-600/20 text-indigo-300 px-3 py-1 rounded-full uppercase tracking-widest">{chart.profile.gender === 'male' ? '乾造' : '坤造'}</span>
-                        <span className="text-[10px] font-black bg-amber-600/20 text-amber-300 px-3 py-1 rounded-full uppercase tracking-widest">{chart.ziwei.animal}</span>
-                        <span className="text-[10px] font-black bg-emerald-600/20 text-emerald-300 px-3 py-1 rounded-full uppercase tracking-widest">{chart.ziwei.bureau}</span>
-                    </div>
-                    <p className="text-slate-500 text-[10px] font-mono mb-8 leading-relaxed uppercase tracking-[0.2em]">
-                        {chart.display.lunarDetail}<br/>
-                        {chart.ziwei.fiveElements}行局能量矩陣
-                    </p>
-                    <button onClick={onEdit} className="flex items-center gap-2 text-indigo-400 hover:text-white transition-colors text-[9px] font-black uppercase tracking-[0.3em] bg-white/5 px-6 py-3 rounded-full border border-white/5">
-                        <Edit3 size={14}/> 修正諮詢資料
-                    </button>
                 </div>
+            ))}
+            
+            <div className="col-start-2 col-end-4 row-start-2 row-end-4 flex flex-col items-center justify-center text-center p-4 bg-slate-800/30 rounded-2xl backdrop-blur-md border border-white/5 shadow-2xl">
+                <div className="w-12 h-12 rounded-full bg-indigo-600/20 flex items-center justify-center mb-2 border border-indigo-500/30">
+                    <Moon className="text-indigo-400" size={24} />
+                </div>
+                <h2 className="text-xl md:text-2xl font-serif font-black text-white mb-1">{chart.profile.name}</h2>
+                <div className="text-[10px] text-slate-400">
+                    <p>{chart.bazi.year} / {chart.bazi.month} / {chart.bazi.day}</p>
+                    <p className="text-indigo-400 font-bold uppercase tracking-widest mt-1">{chart.ziwei.bureau}</p>
+                </div>
+                <button 
+                    onClick={onEdit} 
+                    className="mt-4 p-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-full border border-white/10 transition-all"
+                >
+                    <Edit3 size={12} />
+                </button>
             </div>
         </div>
     );
 };
 
+// --- View: InputForm ---
 const InputForm = ({ onStart }: { onStart: (data: AppFormData) => void }) => {
     const [formData, setFormData] = useState<AppFormData>({
-        name: '', gender: 'male', birthDate: '1990-01-01', birthTime: '12:00',
+        name: '', gender: 'male', birthDate: '1995-06-15', birthTime: '10:30',
         inputType: 'solar', lunarYear: '', lunarMonth: '', lunarDay: ''
     });
+
     return (
-        <div className="min-h-screen bg-[#050505] flex items-center justify-center p-8">
-            <div className="w-full max-w-4xl bg-slate-900/40 backdrop-blur-3xl p-16 rounded-[5rem] border border-white/10 shadow-2xl animate-fade-in">
-                <div className="flex flex-col items-center mb-16 text-center">
-                    <div className="w-24 h-24 bg-indigo-600 rounded-3xl flex items-center justify-center shadow-[0_0_60px_rgba(79,70,229,0.4)] mb-8">
-                        <Sparkles className="text-white" size={48} />
+        <div className="min-h-screen flex items-center justify-center bg-[#050505] p-6">
+            <div className="w-full max-w-md bg-slate-900/50 backdrop-blur-xl p-8 md:p-10 rounded-[2.5rem] shadow-2xl animate-fade-in border border-white/10">
+                <div className="flex flex-col items-center mb-8">
+                    <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-xl rotate-3">
+                        <Sparkles className="text-white" size={32} />
                     </div>
-                    <h1 className="text-5xl font-serif-heavy text-white mb-4 tracking-tighter italic leading-none">東西命理科學顧問</h1>
-                    <p className="text-slate-400 text-lg uppercase tracking-[0.4em] font-black text-xs md:text-sm">Strategic Metaphysics Engine v4.1</p>
+                    <h1 className="text-2xl font-black text-white tracking-tighter">紫微大數據智庫</h1>
+                    <p className="text-slate-400 mt-2 text-sm text-center">輸入出生資訊，由 AI 為您開啟智慧對話</p>
                 </div>
-                <form onSubmit={(e) => { e.preventDefault(); onStart(formData); }} className="space-y-12">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        <div className="space-y-4">
-                            <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">諮詢者姓名</label>
-                            <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="輸入姓名" className="w-full bg-white/5 border border-white/10 rounded-[2.5rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-xl font-bold transition-all" />
+
+                <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onStart(formData); }}>
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">姓名</label>
+                        <input required type="text" className="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white outline-none focus:border-indigo-500/50" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">性別</label>
+                            <select className="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white outline-none" value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value as any})}>
+                                <option value="male">男</option><option value="female">女</option>
+                            </select>
                         </div>
-                        <div className="space-y-4">
-                            <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">生理性別</label>
-                            <div className="flex gap-4">
-                                {(['male', 'female'] as const).map(g => (
-                                    <button key={g} type="button" onClick={() => setFormData({ ...formData, gender: g })} className={`flex-1 py-6 rounded-[2.5rem] border font-black text-sm uppercase tracking-widest transition-all ${formData.gender === g ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'}`}>
-                                        {g === 'male' ? '乾造 (男)' : '坤造 (女)'}
-                                    </button>
-                                ))}
-                            </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">曆法</label>
+                            <select className="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white outline-none" value={formData.inputType} onChange={e => setFormData({...formData, inputType: e.target.value as any})}>
+                                <option value="solar">陽曆</option><option value="lunar">農曆</option>
+                            </select>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        <div className="space-y-4">
-                            <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">出生日期 (西元)</label>
-                            <input required type="date" value={formData.birthDate} onChange={e => setFormData({ ...formData, birthDate: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2.5rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-xl font-bold transition-all [color-scheme:dark]" />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">日期</label>
+                            <input required type="date" className="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white outline-none" value={formData.birthDate} onChange={e => setFormData({...formData, birthDate: e.target.value})} />
                         </div>
-                        <div className="space-y-4">
-                            <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">出生時辰</label>
-                            <input required type="time" value={formData.birthTime} onChange={e => setFormData({ ...formData, birthTime: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2.5rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-xl font-bold transition-all [color-scheme:dark]" />
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">時間</label>
+                            <input required type="time" className="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white outline-none" value={formData.birthTime} onChange={e => setFormData({...formData, birthTime: e.target.value})} />
                         </div>
                     </div>
-                    <div className="pt-8">
-                        <button type="submit" className="w-full bg-white text-slate-900 py-10 rounded-[3rem] font-black text-2xl uppercase tracking-[0.3em] flex items-center justify-center gap-6 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl">
-                            開啟命理大門 <ArrowRight size={32} />
-                        </button>
-                    </div>
+                    <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 mt-4 group">
+                        生成命盤 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform"/>
+                    </button>
                 </form>
             </div>
         </div>
     );
 };
 
-const LoadingOverlay = ({ text }: { text: string }) => (
-    <div className="flex flex-col items-center gap-8 p-12 bg-slate-900/95 backdrop-blur-3xl rounded-[3rem] border border-indigo-500/20 shadow-2xl animate-pulse">
-        <div className="relative">
-            <div className="w-20 h-20 border-2 border-indigo-500/10 border-t-indigo-500 rounded-full animate-spin"></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <Brain className="text-indigo-400" size={24}/>
-            </div>
-        </div>
-        <p className="text-xl font-serif-heavy italic text-white tracking-tight">{text}</p>
-    </div>
-);
+// --- View: Dashboard ---
+const DashboardView = ({ chart, messages, setMessages, isLoading, setIsLoading, input, setInput, onEdit }: any) => {
+    const endRef = useRef<HTMLDivElement>(null);
+    const [hasKey, setHasKey] = useState(!!process.env.API_KEY);
+    const [loadingState, setLoadingState] = useState<'thinking' | 'searching' | null>(null);
 
-const MagazineReport = ({ data, chart, question, isConsolidated }: { data: AIResponse, chart: ChartData, question?: string, isConsolidated?: boolean }) => {
+    // 自動檢查金鑰狀態
+    useEffect(() => {
+        const check = async () => {
+            if (window.aistudio?.hasSelectedApiKey) {
+                const selected = await window.aistudio.hasSelectedApiKey();
+                if (selected) setHasKey(true);
+            }
+        };
+        check();
+    }, []);
+
+    const handleKeySelect = async () => {
+        if (window.aistudio?.openSelectKey) {
+            await window.aistudio.openSelectKey();
+            setHasKey(true);
+        }
+    };
+
+    const performQuery = async (queryText: string) => {
+        if (!queryText.trim() || isLoading) return;
+        
+        const isTrend = queryText.match(/2025|未來|現況|趨勢|最近/);
+        setLoadingState(isTrend ? 'searching' : 'thinking');
+        
+        setMessages((prev: any) => [...prev, { type: 'user', content: queryText }]);
+        setIsLoading(true);
+        
+        try {
+            const data = await callGeminiAPI(chart, queryText, messages);
+            setMessages((prev: any) => [...prev, { type: 'ai', data, question: queryText }]);
+        } catch (err: any) {
+            setMessages((prev: any) => [...prev, { type: 'error', content: err.message }]);
+            if (err.message.includes("API Key") || err.message.includes("金鑰")) setHasKey(false);
+        } finally {
+            setIsLoading(false);
+            setLoadingState(null);
+            setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+        }
+    };
+
+    const handleSend = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!input.trim()) return;
+        const q = input;
+        setInput('');
+        performQuery(q);
+    };
+
     return (
-        <div className={`report-root bg-white text-slate-900 p-8 md:p-24 rounded-[3rem] shadow-[0_50px_100px_rgba(0,0,0,0.1)] relative overflow-hidden border-[1px] border-slate-200 ${isConsolidated ? 'mb-24' : ''}`}>
-            <div className="report-grain absolute inset-0"></div>
-            {question && (
-                <div className="mb-12 p-8 bg-indigo-50 rounded-3xl border-l-[12px] border-indigo-600 flex items-start gap-6">
-                    <History className="text-indigo-600 shrink-0" size={32} />
-                    <div>
-                        <span className="text-[10px] font-sans-bold uppercase text-indigo-400 block mb-2 tracking-widest">諮詢問題回溯</span>
-                        <h4 className="text-2xl font-black text-indigo-900 leading-tight">「{question}」</h4>
-                    </div>
-                </div>
-            )}
-            <div className="flex flex-col mb-32 relative">
-                <div className="flex justify-between items-start mb-16 border-b border-slate-200 pb-8">
-                    <div>
-                        <span className="text-[12px] font-sans-bold uppercase tracking-[0.8em] text-indigo-600 mb-2">Strategic Analysis Report</span>
-                        <span className="text-[10px] text-slate-400 font-mono">Reference: MET-2026-SYNTHESIS</span>
-                    </div>
-                    <div className="text-right">
-                        <span className="text-[12px] font-magazine italic text-slate-900 block mb-1">Confidential Edition</span>
-                        <span className="text-[10px] text-slate-400 font-mono">Date: {new Date().toLocaleDateString()}</span>
-                    </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-end">
-                    <div className="md:col-span-9">
-                        <h1 className="text-7xl md:text-9xl font-magazine italic leading-[0.85] text-slate-900 mb-8 tracking-tighter uppercase">{data.executive_summary.title}</h1>
-                    </div>
-                    <div className="md:col-span-3 flex justify-end">
-                         <div className="bg-slate-900 text-white p-10 rounded-full w-48 h-48 flex flex-col items-center justify-center text-center rotate-12 shadow-2xl">
-                            <span className="text-[10px] font-sans-bold uppercase tracking-widest opacity-60 mb-2">Strategy</span>
-                            <span className="text-2xl font-serif-heavy italic">{data.executive_summary.direction}</span>
+        <div className="min-h-screen pt-8 pb-48 flex flex-col bg-[#050505] max-w-4xl mx-auto px-4">
+            <div className="bg-slate-900/40 p-4 rounded-3xl mb-8 border border-white/5 shadow-2xl">
+                 <ZiweiChart chart={chart} onEdit={onEdit} />
+            </div>
+            
+            <div className="flex-1 space-y-6">
+                {messages.map((m: any, i: number) => (
+                    <div key={i} className={`flex ${m.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+                        <div className={`${m.type === 'user' ? 'bg-indigo-600 text-white p-4 rounded-2xl rounded-tr-none max-w-[85%]' : 'w-full'}`}>
+                            {m.isGreeting ? (
+                                <div className="bg-slate-800/60 p-6 rounded-2xl border border-white/5 shadow-xl">
+                                    <div className="flex items-center gap-2 text-amber-500 mb-2 font-black"><Moon size={18}/> AI 命理導師</div>
+                                    <p className="text-slate-300 leading-relaxed">{m.content}</p>
+                                    {!hasKey && (
+                                        <button 
+                                            onClick={handleKeySelect}
+                                            className="mt-6 flex items-center gap-2 px-6 py-3 bg-amber-500 text-slate-900 rounded-xl font-black text-sm hover:scale-105 transition-all shadow-lg"
+                                        >
+                                            <Key size={16}/> 連接 Gemini API (請點此授權)
+                                        </button>
+                                    )}
+                                </div>
+                            ) : m.type === 'user' ? (
+                                <p className="font-bold">{m.content}</p>
+                            ) : m.data ? (
+                                <div className="space-y-4">
+                                    <div className="bg-slate-800/95 border border-white/10 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-500"></div>
+                                        <h3 className="text-2xl font-black text-amber-400 mb-2 tracking-tight">{m.data.executive_summary.title}</h3>
+                                        <p className="text-slate-200 italic mb-3 opacity-80">「{m.data.executive_summary.direction}」</p>
+                                        <p className="text-slate-300 text-sm leading-loose">{m.data.executive_summary.description}</p>
+                                    </div>
+                                    
+                                    {m.data.groundingSources && (
+                                        <div className="flex flex-wrap gap-2 px-2">
+                                            {m.data.groundingSources.map((s: any, idx: number) => (
+                                                <a key={idx} href={s.uri} target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] rounded-full flex items-center gap-1 hover:bg-blue-500/30 transition-colors">
+                                                    <Search size={10}/> {s.title}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="bg-slate-800/40 p-5 rounded-2xl border border-purple-500/20">
+                                            <h4 className="text-[10px] text-purple-400 mb-3 font-black uppercase tracking-widest flex items-center gap-1"><Star size={12}/> 玄學解析</h4>
+                                            <p className="text-xs text-slate-300 leading-loose">{m.metaphysical_perspective?.content || m.data.metaphysical_perspective.content}</p>
+                                        </div>
+                                        <div className="bg-slate-800/40 p-5 rounded-2xl border border-indigo-500/20">
+                                            <h4 className="text-[10px] text-indigo-400 mb-3 font-black uppercase tracking-widest flex items-center gap-1"><Brain size={12}/> 科學視角</h4>
+                                            <p className="text-xs text-slate-300 leading-loose">{m.data.scientific_decoding.psychology}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-emerald-500/5 p-6 rounded-2xl border border-emerald-500/20 shadow-xl">
+                                        <h4 className="flex items-center gap-2 text-emerald-400 font-bold text-base mb-4 tracking-tight"><CheckCircle2 size={18}/> 具體建議與改運</h4>
+                                        <div className="space-y-3">
+                                            {m.data.actionable_advice.map((a: any, idx: number) => (
+                                                <div key={idx} className="text-sm text-slate-200 flex gap-3 items-start bg-slate-900/40 p-3 rounded-lg border border-white/5">
+                                                    <span className="text-emerald-500 font-black shrink-0 mt-0.5">[{a.type}]</span>
+                                                    <p className="leading-relaxed">{a.content}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="text-red-400 p-5 bg-red-500/10 rounded-2xl border border-red-500/30 text-sm flex items-center gap-3">
+                                        <Shield size={20}/> {m.content}
+                                    </div>
+                                    {m.content?.includes("API") && (
+                                        <button 
+                                            onClick={handleKeySelect}
+                                            className="flex items-center gap-2 px-8 py-4 bg-amber-500 text-slate-900 rounded-xl font-black text-sm shadow-xl hover:scale-105 transition-all"
+                                        >
+                                            <Key size={16}/> 重新連接 API 金鑰
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
-                </div>
-            </div>
-            {/* 內容區塊 */}
-            <div className="magazine-grid mb-32">
-                <div className="col-span-12 md:col-span-8">
-                    <div className="magazine-dropcap text-3xl leading-[1.6] text-slate-800 text-justify mb-16 font-medium">
-                        {data.executive_summary.description}
-                    </div>
-                </div>
-                <div className="col-span-12 md:col-span-4 flex flex-col gap-12">
-                    <div className="p-10 border border-slate-200 rounded-[3rem] bg-white shadow-sm">
-                        <span className="text-[10px] font-sans-bold uppercase text-indigo-600 block mb-6 tracking-widest">Key Insight</span>
-                        <Quote className="text-indigo-600/20 mb-4" size={40} />
-                        <p className="text-2xl font-serif-heavy italic text-slate-800">"{data.zodiac_fortune.warning}"</p>
-                    </div>
-                </div>
-            </div>
-            <div className="pt-24 border-t border-slate-200">
-                <h3 className="text-5xl font-magazine italic mb-16 text-slate-900">戰略行動模組</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {data.actionable_advice.map((a, idx) => (
-                        <div key={idx} className="bg-white p-12 rounded-[3.5rem] border border-slate-100 shadow-sm">
-                            <span className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black mb-6">{idx + 1}</span>
-                            <h5 className="text-[11px] font-sans-bold uppercase text-indigo-600 mb-4">{a.type}</h5>
-                            <p className="text-2xl font-black text-slate-900">{a.content}</p>
+                ))}
+                {isLoading && (
+                    <div className="flex items-center gap-4 p-5 bg-slate-800/80 rounded-2xl w-fit border border-amber-500/20 shadow-2xl animate-pulse">
+                        {loadingState === 'searching' ? <Search className="animate-spin text-blue-400" size={20}/> : <Loader2 className="animate-spin text-amber-500" size={20}/>}
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Gemini 3 Pro Reasoning</span>
+                            <span className="text-sm font-bold text-slate-200">
+                                {loadingState === 'searching' ? '正在聯網抓取 2025 即時趨勢並結合命盤推算...' : '正在對星曜互動進行深度邏輯推理...'}
+                            </span>
                         </div>
-                    ))}
-                </div>
+                    </div>
+                )}
+                <div ref={endRef}/>
             </div>
 
-            {/* Fix: Added grounding sources display for Search compliance */}
-            {data.groundingSources && data.groundingSources.length > 0 && (
-                <div className="mt-24 pt-16 border-t border-slate-100">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-8 flex items-center gap-4">
-                        <Globe size={16} className="text-indigo-600" /> 實時戰略數據引用來源
-                    </h4>
-                    <div className="flex flex-wrap gap-4">
-                        {data.groundingSources.map((source, idx) => (
-                            <a key={idx} href={source.uri} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-indigo-600 hover:text-white transition-all bg-indigo-50 hover:bg-indigo-600 px-6 py-3 rounded-full border border-indigo-100 uppercase tracking-widest flex items-center gap-2">
-                                {source.title} <ArrowRight size={12} />
-                            </a>
-                        ))}
-                    </div>
-                </div>
-            )}
+            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/90 to-transparent z-50">
+                <form onSubmit={handleSend} className="max-w-3xl mx-auto relative group">
+                    <input 
+                        value={input} 
+                        onChange={e => setInput(e.target.value)} 
+                        disabled={isLoading || !hasKey} 
+                        placeholder={hasKey ? "詢問關於您的 2025 運勢、事業或感情問題..." : "請先點擊上方連接 API..."} 
+                        className="w-full bg-slate-800/90 border-2 border-slate-700/50 rounded-2xl px-6 py-5 text-white outline-none focus:border-indigo-500/50 pr-20 text-lg shadow-2xl transition-all disabled:opacity-50" 
+                    />
+                    <button 
+                        type="submit" 
+                        disabled={!input.trim() || isLoading || !hasKey} 
+                        className="absolute right-3 top-3 bottom-3 aspect-square bg-indigo-600 text-white rounded-xl flex items-center justify-center hover:bg-indigo-500 hover:scale-105 active:scale-95 disabled:opacity-30 disabled:grayscale transition-all shadow-lg"
+                    >
+                        <Send size={24}/>
+                    </button>
+                    {!hasKey && (
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-900 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest animate-bounce shadow-xl">
+                            ⚠️ 尚未檢測到 API 授權
+                        </div>
+                    )}
+                </form>
+            </div>
         </div>
     );
 };
 
-const ConsultationBubble = ({ data }: { data: ConsultationResponse }) => (
-    <div className="flex flex-col gap-8 mb-16 animate-fade-in max-w-[90%]">
-        <div className="bg-slate-900/60 backdrop-blur-3xl p-12 md:p-14 rounded-[4rem] rounded-tl-none border border-white/10 shadow-2xl relative">
-            <div className="absolute top-0 right-0 p-10 opacity-5"><Brain size={60} className="text-indigo-400"/></div>
-            <div className="flex flex-col gap-8">
-                <div className="flex items-center gap-4 text-indigo-400">
-                    <CheckCircle2 size={24}/>
-                    <span className="text-[10px] font-black uppercase tracking-widest">顧問即時解答</span>
-                </div>
-                <p className="text-2xl md:text-3xl text-slate-100 leading-relaxed font-medium italic">
-                    {data.answer}
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                        <span className="text-[9px] text-amber-400 font-black uppercase tracking-[0.2em]">戰略洞察</span>
-                        {data.key_points.map((p, i) => <div key={i} className="text-sm text-slate-400 flex gap-2"><div className="w-1 h-1 bg-amber-400 rounded-full mt-2 shrink-0"></div>{p}</div>)}
-                    </div>
-                    <div className="space-y-3">
-                        <span className="text-[9px] text-indigo-400 font-black uppercase tracking-[0.2em]">行動建議</span>
-                        {data.action_advice.map((p, i) => <div key={i} className="text-sm text-slate-400 flex gap-2"><div className="w-1 h-1 bg-indigo-400 rounded-full mt-2 shrink-0"></div>{p}</div>)}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-);
-
+// --- Main App ---
 export const App = () => {
     const [chart, setChart] = useState<ChartData | null>(null);
-    const [messages, setMessages] = useState<Message[]>([{ type: 'ai', content: '尊貴的諮詢者，東西命理科學混合引擎已就緒。請儘管提問，我將直接為您解惑，諮詢結束後可一鍵匯整全方位戰略檔案。', isGreeting: true }]);
+    const [messages, setMessages] = useState<Message[]>([
+        { type: 'ai', content: '尊貴的受測者，您的命盤已布設完成。您可以直接詢問關於 2025 年的環境挑戰、事業轉機，或針對特定宮位的深度解析。', isGreeting: true }
+    ]);
     const [isLoading, setIsLoading] = useState(false);
-    const [loadingText, setLoadingText] = useState("");
     const [input, setInput] = useState('');
-    const [consolidatedReport, setConsolidatedReport] = useState<AIResponse | null>(null);
-    const endRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isLoading, consolidatedReport]);
-
-    const performQuery = async (queryText: string) => {
-        if (!queryText.trim() || isLoading || !chart) return;
-        setIsLoading(true);
-        setLoadingText("正在深度解析命盤矩陣...");
-        setMessages(p => [...p, { type: 'user', content: queryText }]);
-        setConsolidatedReport(null);
-        try { 
-            const data = await callConsultationAPI(chart, queryText, messages); 
-            setMessages(p => [...p, { type: 'ai', data, question: queryText }]); 
-        } catch (err: any) { 
-            setMessages(p => [...p, { type: 'error', content: `解析引擎異常：${err.message}` }]); 
-        } finally { setIsLoading(false); }
+    const handleStart = (formData: AppFormData) => {
+        setChart(calculateChart(formData));
     };
 
-    const handleConsolidate = async () => {
-        if (!chart || messages.length < 2) return;
-        setIsLoading(true);
-        setLoadingText("正在合成全方位戰略報告 (預計 15-20 秒)...");
-        try {
-            const report = await callConsolidationAPI(chart, messages);
-            setConsolidatedReport(report);
-        } catch (err: any) {
-            alert("報告匯整失敗: " + err.message);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    if (!chart) return <InputForm onStart={handleStart} />;
 
-    if (!chart) return <InputForm onStart={(d) => setChart(calculateChart(d))} />;
-
-    return (
-        <div className="min-h-screen pt-32 pb-[450px] bg-[#050505] flex flex-col items-center">
-            {/* Header */}
-            <div className="fixed top-0 left-0 right-0 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 z-40 no-print">
-                <div className="max-w-7xl mx-auto px-12 py-6 flex justify-between items-center">
-                    <div className="flex items-center gap-6">
-                        <div className="w-14 h-14 bg-slate-900 border border-white/10 rounded-2xl flex items-center justify-center shadow-inner"><BookOpen className="text-indigo-400" size={28}/></div>
-                        <h1 className="text-2xl font-serif-heavy text-white">東西命理科學顧問</h1>
-                    </div>
-                    <div className="flex gap-4">
-                        {messages.length > 2 && !consolidatedReport && (
-                            <button onClick={handleConsolidate} className="flex items-center gap-3 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl shadow-xl transition-all font-black text-xs uppercase tracking-widest">
-                                <ClipboardCheck size={18}/> 匯整戰略報告 ({messages.filter(m=>m.data).length})
-                            </button>
-                        )}
-                        <button onClick={() => setChart(null)} className="p-4 bg-white/5 hover:bg-white/10 text-slate-400 rounded-2xl border border-white/10 transition-all"><RefreshCw size={24}/></button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="w-full max-w-7xl px-8 space-y-24">
-                {consolidatedReport ? (
-                    <div className="relative animate-fade-in">
-                        <div className="flex justify-between items-center mb-12 no-print">
-                             <button onClick={() => setConsolidatedReport(null)} className="flex items-center gap-4 text-slate-400 hover:text-white transition-colors font-black text-sm uppercase px-8 py-4 bg-white/5 rounded-full">
-                                <ArrowRight className="rotate-180" size={20}/> 返回對話
-                             </button>
-                             <button onClick={() => window.print()} className="p-6 bg-white text-slate-900 rounded-3xl shadow-2xl flex items-center gap-4 font-black text-sm border border-slate-200">
-                                <Download size={24}/> 下載完整 PDF 報告
-                             </button>
-                        </div>
-                        <div id="full-report-content" className="bg-white rounded-[4rem] overflow-hidden">
-                             <MagazineReport data={consolidatedReport} chart={chart} isConsolidated />
-                        </div>
-                    </div>
-                ) : (
-                    <>
-                        <div className="no-print"><ZiweiChart chart={chart} onEdit={() => setChart(null)} /></div>
-                        <div className="space-y-12">
-                            {messages.map((m, i) => (
-                                <div key={i}>
-                                    {m.type === 'user' && <div className="flex justify-end mb-8"><div className="bg-indigo-600 text-white px-10 py-6 rounded-[3rem] rounded-tr-none max-w-[80%] shadow-xl font-black text-xl leading-snug">{m.content}</div></div>}
-                                    {m.isGreeting && <div className="mb-12"><div className="bg-slate-900/40 p-12 rounded-[4rem] italic font-serif-heavy text-2xl text-slate-100">「{m.content}」</div></div>}
-                                    {m.data && <ConsultationBubble data={m.data} />}
-                                    {m.type === 'error' && <div className="text-red-400 p-8 border border-red-500/20 rounded-3xl">{m.content}</div>}
-                                </div>
-                            ))}
-                            {isLoading && <div className="flex justify-center py-12"><LoadingOverlay text={loadingText} /></div>}
-                            <div ref={endRef} className="h-40"/>
-                        </div>
-                    </>
-                )}
-            </div>
-
-            {/* Input Bar */}
-            <div className="fixed bottom-0 left-0 right-0 p-8 md:p-16 bg-gradient-to-t from-black via-black/95 to-transparent z-50 no-print flex flex-col items-center gap-10">
-                {!consolidatedReport && (
-                    <form onSubmit={(e) => { e.preventDefault(); if (input.trim()) { const q = input; setInput(''); performQuery(q); } }} className="w-full max-w-6xl relative group shadow-2xl rounded-[4rem]">
-                        <input value={input} onChange={e => setInput(e.target.value)} disabled={isLoading} placeholder="輸入諮詢問題 (例如：我的2026財運如何？)" className="w-full bg-slate-900/90 backdrop-blur-[50px] border border-white/10 rounded-[4rem] px-16 py-12 text-white outline-none focus:border-indigo-500/50 pr-44 text-xl md:text-3xl placeholder:text-slate-600 font-serif-heavy transition-all" />
-                        <button type="submit" disabled={!input.trim() || isLoading} className="absolute right-6 top-6 bottom-6 aspect-square bg-gradient-to-tr from-indigo-600 to-purple-800 text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-90 transition-all">{isLoading ? <Loader2 className="animate-spin" size={32}/> : <ChevronRight size={48} />}</button>
-                    </form>
-                )}
-                {!consolidatedReport && (
-                    <div className="w-full max-w-6xl overflow-x-auto scrollbar-hide flex items-center justify-start md:justify-center gap-6 px-4">
-                        {GUIDANCE_QUESTIONS.map((g, idx) => (
-                            <button key={idx} disabled={isLoading} onClick={() => performQuery(g.query)} className="shrink-0 flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 px-8 py-5 rounded-full text-slate-300 transition-all hover:scale-105 shadow-lg"><span className="text-indigo-400">{g.icon}</span><span className="text-sm font-black tracking-widest uppercase">{g.label}</span></button>
-                        ))}
-                    </div>
-                )}
-            </div>
-            
-            <style>{`
-                @keyframes fade-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-                .animate-fade-in { animation: fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-                .scrollbar-hide::-webkit-scrollbar { display: none; }
-                @media print { 
-                    .report-root { border: none !important; margin: 0 !important; padding: 20mm !important; } 
-                    .no-print { display: none !important; } 
-                }
-            `}</style>
-        </div>
-    );
+    return <DashboardView chart={chart} messages={messages} setMessages={setMessages} isLoading={isLoading} setIsLoading={setIsLoading} input={input} setInput={setInput} onEdit={() => setChart(null)} />;
 };

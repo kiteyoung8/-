@@ -4,7 +4,7 @@ export interface Star {
     type: 'major' | 'minor' | 'aux';
     color: string;
     transformation?: '祿' | '權' | '科' | '忌';
-    status?: string; 
+    status?: string; // 旺、廟、平、陷
 }
 
 export interface PalaceData {
@@ -16,15 +16,15 @@ export interface PalaceData {
     isLifePalace: boolean;
     isBodyPalace: boolean;
     gridArea: string;
-    decades: string; 
-    ages: number[]; 
+    decades: string; // 大限，如 2-11
+    ages: number[]; // 小限歲數
 }
 
 export interface ChartData {
     profile: {
         name: string;
         gender: string;
-        isYang: boolean; 
+        isYang: boolean; // 陽男/陰女 影響大限順逆
     };
     bazi: {
         year: string;
@@ -43,10 +43,6 @@ export interface ChartData {
         siHua: string[];
         grid: PalaceData[];
     };
-    western: {
-        zodiac: string;
-        element: string;
-    };
     display: {
         date: string;
         time: string;
@@ -54,26 +50,11 @@ export interface ChartData {
     };
 }
 
-// 輕量化的即時對話響應
-export interface ConsultationResponse {
-    answer: string;
-    key_points: string[];
-    action_advice: string[];
-}
-
 export interface AIResponse {
     executive_summary: {
         title: string;
         direction: string;
         description: string;
-    };
-    zodiac_fortune: {
-        animal: string;
-        western_zodiac: string;
-        summary: string;
-        warning: string;
-        zodiac_annual_fortune: string;
-        fortune_2025: string;
     };
     metaphysical_perspective: {
         title: string;
@@ -88,15 +69,18 @@ export interface AIResponse {
         type: string;
         content: string;
     }>;
-    // Fix: Added groundingSources property to satisfy requirement of listing search URLs
-    groundingSources?: Array<{ title: string; uri: string }>;
+    // Fix: Added groundingSources to the response type to store search results
+    groundingSources?: Array<{
+        title: string;
+        uri: string;
+    }>;
+    model_used?: string;
 }
 
 export interface Message {
     type: 'user' | 'ai' | 'error';
     content?: string;
-    data?: ConsultationResponse; // 諮詢過程中使用輕量資料
-    reportData?: AIResponse;      // 最終報告使用完整資料
+    data?: AIResponse;
     isGreeting?: boolean;
     question?: string;
 }
