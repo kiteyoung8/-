@@ -6,6 +6,14 @@ const GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸
 const ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
 const PALACE_NAMES = ['命宮', '兄弟', '夫妻', '子女', '財帛', '疾厄', '遷移', '交友', '官祿', '田宅', '福德', '父母'];
 
+// 生肖繁體中文映射表
+const ZODIAC_TRADITIONAL: Record<string, string> = {
+    '鼠': '鼠', '牛': '牛', '虎': '虎', '兔': '兔', '龍': '龍', '蛇': '蛇',
+    '馬': '馬', '羊': '羊', '猴': '猴', '雞': '雞', '狗': '狗', '豬': '豬',
+    // Fix: Removed duplicate '狗': '狗' which caused an object literal error on line 13.
+    '龙': '龍', '马': '馬', '鸡': '雞', '猪': '豬'
+};
+
 const MAJOR_STARS_TABLE: Record<string, string[]> = {
     '子': ['亥', '酉', '申', '未', '辰', '辰', '巳', '午', '未', '申', '酉', '戌', '寅'],
     '丑': ['子', '戌', '酉', '申', '巳', '卯', '辰', '巳', '午', '未', '申', '酉', '丑'],
@@ -136,14 +144,14 @@ export const calculateChart = (formData: any): ChartData => {
     addStar(ZHI[(ZHI.indexOf('戌') + hIdx) % 12], '鈴星', 'text-red-400', 'minor');
 
     // --- 7. 新增時辰星曜與神煞 ---
-    // 天姚 (月系): 丑起正月順行
+    // 天姚 (月系)
     addStar(ZHI[(1 + (lMonth - 1)) % 12], '天姚', 'text-pink-400', 'minor');
     
     // 解神 (月系)
     const jieShenMap = ['申', '申', '酉', '酉', '戌', '戌', '亥', '亥', '子', '子', '丑', '丑'];
     addStar(jieShenMap[lMonth - 1], '解神', 'text-blue-300', 'minor');
     
-    // 陰煞 (月系): 寅起正月逆行
+    // 陰煞 (月系)
     const yinShaMap = ['寅', '子', '戌', '申', '午', '辰', '寅', '子', '戌', '申', '午', '辰'];
     addStar(yinShaMap[lMonth - 1], '陰煞', 'text-slate-500', 'minor');
     
@@ -165,7 +173,7 @@ export const calculateChart = (formData: any): ChartData => {
     addStar(ZHI[(ZHI.indexOf(changZhi) + lDay - 2 + 12) % 12], '恩光', 'text-yellow-300', 'minor');
     addStar(ZHI[(ZHI.indexOf(quZhi) + lDay - 2 + 12) % 12], '天貴', 'text-yellow-300', 'minor');
 
-    // 博士十二神 (流派: 博士, 力士, 青龍, 小耗, 將軍, 奏書, 飛廉, 喜神, 病符, 大耗, 伏兵, 官府)
+    // 博士十二神
     const boshiNames = ['博士', '力士', '青龍', '小耗', '將軍', '奏書', '飛廉', '喜神', '病符', '大耗', '伏兵', '官府'];
     const isClockwise = (gender === 'male' && yearGanIdx % 2 === 0) || (gender === 'female' && yearGanIdx % 2 !== 0);
     boshiNames.forEach((name, i) => {
@@ -173,7 +181,6 @@ export const calculateChart = (formData: any): ChartData => {
         addStar(ZHI[(lcIdx + offset) % 12], name, 'text-slate-400', 'minor');
     });
 
-    // --- 四化設定 ---
     const siHuaMap: Record<string, [string, string, string, string]> = {
         '甲': ['廉貞','破軍','武曲','太陽'], '乙': ['天機','天梁','紫微','太陰'], '丙': ['天同','天機','文昌','廉貞'],
         '丁': ['太陰','天同','天機','巨門'], '戊': ['貪狼','太陰','右弼','天機'], '己': ['武曲','貪狼','天梁','文曲'],
@@ -190,15 +197,11 @@ export const calculateChart = (formData: any): ChartData => {
     for (let i = 0; i < 12; i++) {
         const pZhi = ZHI[i];
         const stars: Star[] = [];
-        
         if (pZhi === zwZhi) stars.push({ name: '紫微', type: 'major', color: 'text-purple-500' });
-        
         starPosMap.forEach((pos, idx) => {
             if (pos === pZhi) stars.push({ name: starNames[idx], type: 'major', color: idx < 5 ? 'text-rose-500' : 'text-amber-500' });
         });
-        
         if (auxStars[pZhi]) stars.push(...auxStars[pZhi]);
-        
         stars.forEach(s => {
             const shIdx = siHuaNames.indexOf(s.name);
             if (shIdx !== -1) s.transformation = siHuaTypes[shIdx];
@@ -211,6 +214,10 @@ export const calculateChart = (formData: any): ChartData => {
         });
     }
 
+    // 確保生肖輸出為繁體中文
+    const rawAnimal = baseLunar.getYearShengXiao();
+    const animalTraditional = ZODIAC_TRADITIONAL[rawAnimal] || rawAnimal;
+
     return {
         profile: { name, gender, isYang: yearGanIdx % 2 === 0 },
         bazi: { 
@@ -221,7 +228,7 @@ export const calculateChart = (formData: any): ChartData => {
         },
         ziwei: {
             lifePalaceZhi: ZHI[lifeIdx], bodyPalaceZhi: ZHI[bodyIdx], bureau: bureau.name, mingZhu: '未知', shenZhu: '未知',
-            animal: baseLunar.getYearShengXiao(), fiveElements: bureau.name.substring(0, 1), 
+            animal: animalTraditional, fiveElements: bureau.name.substring(0, 1), 
             siHua: siHuaNames.map((n, idx) => `${n}化${siHuaTypes[idx]}`), grid
         },
         western: {

@@ -4,7 +4,8 @@ import {
   Send, Sparkles, Moon, Brain, Star as StarIcon, Edit3,
   Search, Loader2, Key, RefreshCw, AlertTriangle, Download, 
   Zap, TrendingUp, Globe, ArrowRight, FileText, ChevronRight,
-  ShieldCheck, Compass, Sun, BookOpen, Layers
+  ShieldCheck, Compass, Sun, BookOpen, Layers, Quote, Calendar,
+  ShieldAlert
 } from 'lucide-react';
 import { calculateChart } from './MetaphysicsEngine';
 import { callGeminiAPI } from './geminiService'; 
@@ -38,8 +39,8 @@ const InputForm = ({ onStart }: { onStart: (data: AppFormData) => void }) => {
                     <div className="w-24 h-24 bg-indigo-600 rounded-3xl flex items-center justify-center shadow-[0_0_60px_rgba(79,70,229,0.4)] mb-8">
                         <Sparkles className="text-white" size={48} />
                     </div>
-                    <h1 className="text-5xl font-serif-heavy text-white mb-4 tracking-tighter italic leading-none">全能命理科學顧問</h1>
-                    <p className="text-slate-400 text-lg uppercase tracking-[0.4em] font-black">Strategic Metaphysics Engine v4.1</p>
+                    <h1 className="text-5xl font-serif-heavy text-white mb-4 tracking-tighter italic leading-none">東西命理科學顧問</h1>
+                    <p className="text-slate-400 text-lg uppercase tracking-[0.4em] font-black text-xs md:text-sm">Strategic Metaphysics Engine v4.1</p>
                 </div>
 
                 <form onSubmit={(e) => { e.preventDefault(); onStart(formData); }} className="space-y-12">
@@ -215,98 +216,156 @@ const MagazineReport = ({ data, chart }: { data: AIResponse, chart: ChartData })
     };
 
     return (
-        <div className="report-container relative animate-fade-in py-12 w-full max-w-6xl mx-auto">
-             <div className="flex justify-end mb-8 no-print">
+        <div className="report-container relative animate-fade-in py-12 w-full max-w-7xl mx-auto px-4 md:px-0">
+             <div className="flex justify-end mb-12 no-print gap-4">
                 <button 
                     onClick={handleExport}
-                    className="p-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-3xl shadow-2xl flex items-center gap-4 transition-all hover:scale-105 active:scale-95 font-black text-sm uppercase tracking-widest"
+                    className="p-6 bg-white hover:bg-slate-100 text-slate-900 rounded-3xl shadow-2xl flex items-center gap-4 transition-all hover:scale-105 active:scale-95 font-black text-sm uppercase tracking-[0.2em] border border-slate-200"
                 >
-                    <Download size={24}/> 下載專業 PDF 戰略報告
+                    <Download size={24}/> 下載 PDF 專業版報告
                 </button>
              </div>
 
-            <div id={reportId} className="report-root bg-white text-slate-900 p-12 md:p-24 rounded-lg shadow-2xl relative overflow-hidden border-[24px] border-slate-900 font-serif-heavy">
-                <div className="flex flex-col mb-20 border-b-[8px] border-slate-900 pb-16">
-                    <div className="flex justify-between items-baseline mb-12">
-                        <div className="flex items-center gap-4">
-                            <BookOpen className="text-indigo-600" size={24}/>
-                            <span className="text-[12px] font-black uppercase tracking-[0.8em] text-indigo-600">STRATEGIC CONSULTANCY REPORT</span>
+            <div id={reportId} className="report-root bg-white text-slate-900 p-8 md:p-24 rounded-[3rem] shadow-[0_50px_100px_rgba(0,0,0,0.1)] relative overflow-hidden border-[1px] border-slate-200">
+                <div className="report-grain absolute inset-0"></div>
+                
+                {/* 高級封面設計節點 */}
+                <div className="flex flex-col mb-32 relative">
+                    <div className="flex justify-between items-start mb-16 border-b-[1px] border-slate-200 pb-8">
+                        <div className="flex flex-col">
+                            <span className="text-[12px] font-sans-bold uppercase tracking-[0.8em] text-indigo-600 mb-2">Strategic Analysis Report</span>
+                            <span className="text-[10px] text-slate-400 font-mono uppercase">Reference: MET-2026-XQ01</span>
                         </div>
-                        <span className="text-[12px] font-mono font-bold text-slate-400 italic">V4.1 AI-POWERED ANALYSIS</span>
+                        <div className="text-right">
+                            <span className="text-[12px] font-magazine italic text-slate-900 block mb-1">Confidential Edition</span>
+                            <span className="text-[10px] text-slate-400 font-mono uppercase">Date: {new Date().toLocaleDateString()}</span>
+                        </div>
                     </div>
-                    <h1 className="text-4xl md:text-7xl font-magazine italic leading-none text-slate-900 mb-10 tracking-tight uppercase">
-                        {data.executive_summary.title}
-                    </h1>
-                    <div className="bg-slate-900 text-white px-8 py-3 text-3xl uppercase italic tracking-tighter w-fit">
-                        戰略方向：{data.executive_summary.direction}
+
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-end">
+                        <div className="md:col-span-9">
+                            <h1 className="text-7xl md:text-9xl font-magazine italic leading-[0.85] text-slate-900 mb-8 tracking-tighter uppercase break-words">
+                                {data.executive_summary.title}
+                            </h1>
+                        </div>
+                        <div className="md:col-span-3 flex justify-end">
+                             <div className="bg-slate-900 text-white p-10 rounded-full w-48 h-48 flex flex-col items-center justify-center text-center rotate-12 shadow-2xl">
+                                <span className="text-[10px] font-sans-bold uppercase tracking-widest opacity-60 mb-2">Strategy</span>
+                                <span className="text-2xl font-serif-heavy italic leading-tight">{data.executive_summary.direction}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-24 border-y-2 border-slate-100 py-12">
-                    <div className="flex flex-col"><span className="text-[10px] text-slate-400 font-black uppercase mb-2">Subject</span><span className="text-3xl font-black">{chart.profile.name}</span></div>
-                    <div className="flex flex-col"><span className="text-[10px] text-slate-400 font-black uppercase mb-2">Astro Matrix</span><span className="text-3xl font-black">{chart.ziwei.animal}年 / {chart.western.zodiac}</span></div>
-                    <div className="flex flex-col"><span className="text-[10px] text-slate-400 font-black uppercase mb-2">Target Cycle</span><span className="text-3xl font-black">2026 丙午年</span></div>
+                {/* 數據概要面板 */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-0 mb-32 border-y-[1px] border-slate-900">
+                    <div className="p-10 border-r-[1px] border-slate-200 flex flex-col">
+                        <span className="text-[10px] text-slate-400 font-sans-bold uppercase mb-4 tracking-widest">Consultant</span>
+                        <span className="text-2xl font-black italic">AI Oracle V4.1</span>
+                    </div>
+                    <div className="p-10 border-r-[1px] border-slate-200 flex flex-col bg-slate-50">
+                        <span className="text-[10px] text-slate-400 font-sans-bold uppercase mb-4 tracking-widest">Subject Name</span>
+                        <span className="text-2xl font-black">{chart.profile.name}</span>
+                    </div>
+                    <div className="p-10 border-r-[1px] border-slate-200 flex flex-col">
+                        <span className="text-[10px] text-slate-400 font-sans-bold uppercase mb-4 tracking-widest">Astro Matrix</span>
+                        <span className="text-2xl font-black">{chart.ziwei.animal}年 / {chart.western.zodiac}</span>
+                    </div>
+                    <div className="p-10 flex flex-col">
+                        <span className="text-[10px] text-slate-400 font-sans-bold uppercase mb-4 tracking-widest">Target Year</span>
+                        <span className="text-2xl font-black">2026 丙午</span>
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-16 mb-24">
-                    <div className="md:col-span-8">
-                        <p className="text-4xl leading-[1.3] text-slate-800 mb-16 first-letter:text-[14rem] first-letter:font-magazine first-letter:float-left first-letter:mr-10 first-letter:text-slate-900 first-letter:mt-4">
+                {/* 2025 運勢深度簡析區塊 (視覺優化) */}
+                <div className="mb-24 relative">
+                    <div className="absolute -top-6 left-12 px-6 py-2 bg-indigo-600 text-white rounded-full z-10 flex items-center gap-3 shadow-xl">
+                         <ShieldAlert size={18}/>
+                         <span className="text-[10px] font-sans-bold uppercase tracking-widest">Current Phase | 2025 乙巳年</span>
+                    </div>
+                    <div className="p-12 bg-slate-50 rounded-[4rem] border border-slate-200 shadow-sm flex flex-col md:flex-row gap-12 items-center">
+                        <div className="flex-shrink-0 w-28 h-28 bg-white rounded-[2rem] flex items-center justify-center shadow-inner border border-slate-100 group">
+                            <Calendar className="text-indigo-600 group-hover:scale-110 transition-transform" size={48} />
+                        </div>
+                        <div className="flex-grow">
+                            <h4 className="text-2xl font-serif-heavy text-slate-900 mb-4 border-b border-slate-200 pb-2 inline-block">當前年度戰略定位</h4>
+                            <p className="text-xl md:text-2xl font-medium italic text-slate-700 leading-relaxed font-quote">
+                                {data.zodiac_fortune.fortune_2025}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 正文內容 */}
+                <div className="magazine-grid mb-32">
+                    <div className="col-span-12 md:col-span-8">
+                        <div className="magazine-dropcap text-3xl leading-[1.6] text-slate-800 text-justify mb-16 font-medium">
                             {data.executive_summary.description}
-                        </p>
-                        <div className="bg-slate-50 p-12 rounded-[3rem] border-l-[16px] border-indigo-600 shadow-sm mt-12">
-                            <h4 className="text-3xl font-black mb-8 flex items-center gap-4 text-slate-900">
-                                <StarIcon className="text-indigo-600" size={32}/> 2026 生肖年度運勢深度分析
-                            </h4>
-                            <div className="space-y-6 text-xl leading-relaxed text-slate-700 italic">
-                                <p className="font-bold text-indigo-700">
-                                    【{data.zodiac_fortune?.animal || chart.ziwei.animal} 屬性專區】：{data.zodiac_fortune?.summary || "穩紮穩打"}
-                                </p>
-                                <p>{data.zodiac_fortune?.zodiac_annual_fortune || "正在獲取詳細生肖分析..."}</p>
-                            </div>
+                        </div>
+                        
+                        <div className="bg-slate-900 text-white p-16 rounded-[4rem] relative overflow-hidden shadow-2xl">
+                             <div className="absolute top-0 right-0 p-8 opacity-10">
+                                <Sparkles size={120} />
+                             </div>
+                             <h4 className="text-4xl font-serif-heavy italic mb-10 flex items-center gap-6">
+                                <div className="w-12 h-1 border-t-2 border-white/30"></div>
+                                2026 年度流年專論
+                             </h4>
+                             <div className="space-y-8 text-xl leading-relaxed text-indigo-100">
+                                <div className="pl-8 border-l-2 border-indigo-500/50">
+                                    <p className="font-sans-bold text-amber-400 uppercase tracking-widest text-sm mb-4">【{data.zodiac_fortune?.animal || chart.ziwei.animal} 生肖賦能】</p>
+                                    <p className="text-2xl font-bold mb-4">{data.zodiac_fortune?.summary}</p>
+                                    <p className="opacity-80 italic">{data.zodiac_fortune?.zodiac_annual_fortune}</p>
+                                </div>
+                             </div>
                         </div>
                     </div>
-                    <div className="md:col-span-4">
-                        <div className="bg-slate-900 text-white p-12 rounded-[3rem] shadow-2xl">
-                            <h4 className="text-[11px] font-black uppercase mb-10 border-b border-white/20 pb-4">Insight Summary</h4>
-                            <p className="text-2xl leading-tight font-black mb-8">{data.zodiac_fortune?.summary || "綜合分析就緒"}</p>
-                            <div className="p-8 bg-white/5 rounded-3xl border border-white/10 text-sm italic opacity-80">
-                                <span className="text-amber-400 font-black block mb-2 tracking-widest">年度警語 Caution</span>
-                                {data.zodiac_fortune?.warning || "注意流年變化"}
-                            </div>
+
+                    <div className="col-span-12 md:col-span-4 flex flex-col gap-12">
+                        <div className="p-10 border-[1px] border-slate-200 rounded-[3rem] bg-white shadow-sm">
+                            <span className="text-[10px] font-sans-bold uppercase text-indigo-600 block mb-6 tracking-widest">Key Insight</span>
+                            <Quote className="text-indigo-600/20 mb-4" size={40} />
+                            <p className="text-2xl font-serif-heavy italic leading-tight text-slate-800">
+                                "{data.zodiac_fortune?.warning || '戰略轉型期需防範過度擴張，建議回歸內核穩步前進。'}"
+                            </p>
+                        </div>
+
+                        <div className="p-10 bg-slate-50 rounded-[3rem] border-l-[10px] border-slate-900">
+                             <span className="text-[10px] font-sans-bold uppercase text-slate-400 block mb-6 tracking-widest">Physics Observation</span>
+                             <p className="text-xl italic text-slate-700 font-quote">
+                                {data.scientific_decoding.physics}
+                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-24 mb-32">
-                    <div>
-                        <h4 className="text-[12px] font-black text-indigo-600 mb-10 border-b-2 border-indigo-600 pb-4 inline-block">玄學深度透視 Metaphysics</h4>
-                        <div className="text-2xl leading-[1.8] text-slate-700 space-y-8">
-                            {data.metaphysical_perspective.content.split('。').map((s, i) => s && <p key={i} className="pl-8 border-l-4 border-indigo-100">{s}。</p>)}
-                        </div>
-                    </div>
-                    <div className="space-y-16">
-                        <h4 className="text-[12px] font-black text-amber-600 mb-10 border-b-2 border-amber-600 pb-4 inline-block">現代行為解碼 Science</h4>
-                        <div className="bg-slate-50 p-12 rounded-[3rem]">
-                            <span className="text-[10px] text-slate-400 font-black block mb-6 uppercase">心理維度解析 Psychology</span>
-                            <p className="text-4xl leading-tight text-slate-900">{data.scientific_decoding.psychology}</p>
-                        </div>
-                        <div className="border-l-[16px] border-slate-900 pl-12 py-8">
-                            <span className="text-[10px] text-slate-400 font-black block mb-6 uppercase">物理規律客觀解析 Physics</span>
-                            <p className="text-2xl italic text-slate-800">"{data.scientific_decoding.physics}"</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-slate-900 text-white p-20 rounded-[5rem] relative overflow-hidden">
-                    <h3 className="text-6xl font-magazine italic mb-20 relative z-10 flex items-center gap-8">Strategic Actions</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-20 relative z-10">
+                {/* 戰略行動模組 */}
+                <div className="pt-24 border-t-[1px] border-slate-200">
+                    <h3 className="text-5xl font-magazine italic mb-16 text-slate-900">諮詢建議與戰略執行</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {data.actionable_advice.map((a, idx) => (
-                            <div key={idx} className="flex flex-col gap-10">
-                                <div className="text-8xl text-white/10 font-magazine">0{idx+1}</div>
-                                <span className="text-[11px] font-black uppercase text-indigo-400 bg-white/5 px-8 py-4 rounded-full w-fit border border-white/10">{a.type}</span>
-                                <p className="text-3xl font-black leading-tight text-slate-100">{a.content}</p>
+                            <div key={idx} className="group relative bg-white p-12 rounded-[3.5rem] border-[1px] border-slate-100 hover:border-indigo-600 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+                                <div className="text-7xl font-magazine text-slate-100 group-hover:text-indigo-50 opacity-100 absolute top-8 right-12 transition-colors">0{idx+1}</div>
+                                <div className="relative z-10 flex flex-col gap-8">
+                                    <span className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black">{idx + 1}</span>
+                                    <h5 className="text-[11px] font-sans-bold uppercase tracking-[0.3em] text-indigo-600">{a.type}</h5>
+                                    <p className="text-2xl font-black leading-snug text-slate-900">
+                                        {a.content}
+                                    </p>
+                                </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+
+                {/* 底部署名 */}
+                <div className="mt-32 pt-16 border-t-[1px] border-slate-200 flex justify-between items-end opacity-40 italic">
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-sans-bold uppercase">Meta-Strategist AI Report</span>
+                        <span className="text-[9px]">Generated by GPT-Hybrid Metaphysics Engine</span>
+                    </div>
+                    <div className="text-right text-[10px] font-mono">
+                        COPYRIGHT © 2026 ALL RIGHTS RESERVED
                     </div>
                 </div>
             </div>
@@ -346,6 +405,7 @@ const MessageItem = ({ m, onRetryKey, chart, onOutputReport }: { m: Message, onR
                                 </div>
                             </div>
                         </div>
+
                         <div className="pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-8">
                             <button 
                                 onClick={() => onOutputReport(m.data!)}
@@ -397,7 +457,7 @@ export const App = () => {
                 <div className="max-w-7xl mx-auto px-12 py-6 flex justify-between items-center">
                     <div className="flex items-center gap-6">
                         <div className="w-14 h-14 bg-slate-900 border border-white/10 rounded-2xl flex items-center justify-center shadow-inner"><BookOpen className="text-indigo-400" size={28}/></div>
-                        <h1 className="text-2xl font-serif-heavy text-white tracking-tighter">全能命理科學顧問</h1>
+                        <h1 className="text-2xl font-serif-heavy text-white tracking-tighter">東西命理科學顧問</h1>
                     </div>
                     <div className="flex gap-4">
                         {messages.some(m => m.data) && (
@@ -416,7 +476,7 @@ export const App = () => {
                 </div>
             </div>
 
-            <div className="w-full max-w-6xl px-8 space-y-24">
+            <div className="w-full max-w-7xl px-8 space-y-24">
                 {activeReportData ? (
                     <div className="relative animate-fade-in">
                         <button onClick={() => setActiveReportData(null)} className="mb-8 flex items-center gap-4 text-slate-400 hover:text-white transition-colors font-black text-sm uppercase tracking-widest px-8 py-4 bg-white/5 rounded-full no-print">
@@ -461,7 +521,12 @@ export const App = () => {
                 @keyframes fade-in { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
                 .animate-fade-in { animation: fade-in 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
                 .scrollbar-hide::-webkit-scrollbar { display: none; }
-                @media print { .report-root { border: none !important; margin: 0 !important; padding: 15mm !important; box-shadow: none !important; } .no-print { display: none !important; } body { background: white !important; color: black !important; } }
+                @media print { 
+                    .report-root { border: none !important; margin: 0 !important; padding: 15mm !important; box-shadow: none !important; } 
+                    .no-print { display: none !important; } 
+                    body { background: white !important; color: black !important; }
+                    .report-grain { display: none !important; }
+                }
             `}</style>
         </div>
     );
