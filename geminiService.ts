@@ -15,8 +15,8 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
         throw new Error("ENV_KEY_MISSING");
     }
 
-    // Always create a new GoogleGenAI instance right before making an API call.
-    const ai = new GoogleGenAI({ apiKey });
+    // Fix: Always create a new GoogleGenAI instance right before making an API call to ensure it always uses the most up-to-date API key.
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
     
     const lifePalace = chartData.ziwei.grid.find(p => p.isLifePalace);
     const lifeStars = lifePalace?.stars.map(s => `${s.name}${s.transformation ? `(化${s.transformation})` : ''}`).join('、') || '無主星';
@@ -127,11 +127,13 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
             },
         });
 
+        // Fix: Use .text property instead of .text()
         const text = response.text.trim();
         const result = JSON.parse(text) as AIResponse;
         
         const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
         if (groundingChunks) {
+            // Fix: This assignment now works after updating types.ts
             result.groundingSources = groundingChunks
                 .filter(chunk => chunk.web)
                 .map(chunk => ({
