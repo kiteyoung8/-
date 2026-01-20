@@ -8,17 +8,8 @@ import {
   ShieldAlert, ClipboardCheck, History, Activity
 } from 'lucide-react';
 import { calculateChart } from './MetaphysicsEngine';
-import { callGeminiAPI } from './services/geminiService'; 
+import { callGeminiAPI } from './geminiService'; 
 import { ChartData, Message, FormData as AppFormData, AIResponse } from './types';
-
-const getAiStudio = () => (window as any).aistudio;
-
-const GUIDANCE_QUESTIONS = [
-    { label: "2026 整體運勢", icon: <Sparkles size={14}/>, query: "請根據我的命盤主星與三方四正格局，深度分析 2026 年的整體運勢軌跡。" },
-    { label: "事業財富戰略", icon: <TrendingUp size={14}/>, query: "我的官祿宮與財帛宮在 2026 丙午年受四化（同機昌廉）影響如何？" },
-    { label: "2025 布局回顧", icon: <Calendar size={14}/>, query: "現在已接近 2025 年底，我該如何根據乙巳年的收尾能量布局明年？" },
-    { label: "身心健康預警", icon: <Sun size={14}/>, query: "從疾厄宮角度看，今年是否有廉貞化忌觸發的風險？請提供建議。" }
-];
 
 /**
  * 終極 PDF 下載函數：徹底消除首尾空白頁，並確保文字排版在顏色框內
@@ -56,7 +47,7 @@ const downloadAsPDF = (elementId: string, filename: string) => {
                     el.style.margin = '0';
                     el.style.boxShadow = 'none';
                     el.style.border = 'none';
-                    el.style.height = '296.3mm'; // 強制對齊標準尺寸
+                    el.style.height = '296.3mm'; 
                     
                     if (idx === pages.length - 1) {
                         el.style.pageBreakAfter = 'avoid';
@@ -71,6 +62,13 @@ const downloadAsPDF = (elementId: string, filename: string) => {
     
     (window as any).html2pdf().set(opt).from(element).save();
 };
+
+const GUIDANCE_QUESTIONS = [
+    { label: "2026 整體運勢", icon: <Sparkles size={14}/>, query: "請根據我的命盤主星與三方四正格局，深度分析 2026 年的整體運勢軌跡。" },
+    { label: "事業財富戰略", icon: <TrendingUp size={14}/>, query: "我的官祿宮與財帛宮在 2026 丙午年受四化（同機昌廉）影響如何？" },
+    { label: "2025 布局回顧", icon: <Calendar size={14}/>, query: "現在已接近 2025 年底，我該如何根據乙巳年的收尾能量布局明年？" },
+    { label: "身心健康預警", icon: <Sun size={14}/>, query: "從疾厄宮角度看，今年是否有廉貞化忌觸發的風險？請提供建議。" }
+];
 
 const InputForm = ({ onStart }: { onStart: (data: AppFormData) => void }) => {
     const [formData, setFormData] = useState<AppFormData>({
@@ -92,7 +90,7 @@ const InputForm = ({ onStart }: { onStart: (data: AppFormData) => void }) => {
                         <Sparkles className="text-white" size={48} />
                     </div>
                     <h1 className="text-5xl font-serif-heavy text-white mb-4 tracking-tighter italic">東西命理科學顧問</h1>
-                    <p className="text-slate-400 text-lg uppercase tracking-[0.4em] font-black text-xs md:text-sm">Strategic Metaphysics Engine v6.7</p>
+                    <p className="text-slate-400 text-lg uppercase tracking-[0.4em] font-black text-xs md:text-sm">Strategic Metaphysics Engine v6.9</p>
                 </div>
                 <form onSubmit={(e) => { e.preventDefault(); onStart(formData); }} className="space-y-12">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -151,23 +149,23 @@ const MagazineReport = ({ data, chart, question }: { data: AIResponse, chart: Ch
             <div className="pdf-page">
                 <div className="report-grain"></div>
                 <div className="content-wrap justify-between">
-                    <div className="text-center pt-20">
-                        <span className="text-[11px] font-sans-bold uppercase tracking-[1em] text-indigo-600 block mb-10">Calibrated Dossier : {chart.profile.name}</span>
-                        <h1 className="text-5xl font-serif-heavy italic text-slate-900 mb-6 uppercase tracking-tighter leading-tight">{data.executive_summary.title}</h1>
-                        <div className="w-28 h-1 bg-slate-900 mx-auto min-h-[4px] my-10"></div>
-                        <p className="text-xl font-magazine text-slate-500 italic">2026 命理戰略年度報告</p>
+                    <div className="text-center pt-16">
+                        <span className="text-[10px] font-sans-bold uppercase tracking-[1em] text-indigo-600 block mb-8">Calibrated Dossier : {chart.profile.name}</span>
+                        <h1 className="text-4xl font-serif-heavy italic text-slate-900 mb-6 uppercase tracking-tighter leading-tight">{data.executive_summary.title}</h1>
+                        <div className="w-24 h-1 bg-slate-900 mx-auto min-h-[4px] my-8"></div>
+                        <p className="text-lg font-magazine text-slate-500 italic">2026 命理戰略年度報告</p>
                     </div>
 
                     {question && (
-                        <div className="px-8 py-10 bg-slate-50 border-l-[10px] border-indigo-600 rounded-r-3xl mx-6">
-                            <span className="text-[9px] font-sans-bold uppercase text-indigo-400 block mb-2 tracking-widest">Query Context</span>
-                            <h4 className="text-xl font-black text-indigo-900 leading-snug">「{question}」</h4>
+                        <div className="px-8 py-8 bg-slate-50 border-l-[10px] border-indigo-600 rounded-r-3xl mx-4">
+                            <span className="text-[8px] font-sans-bold uppercase text-indigo-400 block mb-2 tracking-widest">Query Context</span>
+                            <h4 className="text-lg font-black text-indigo-900 leading-snug">「{question}」</h4>
                         </div>
                     )}
 
                     <div className="pb-4 border-t border-slate-200 flex justify-between items-center text-slate-400">
-                        <span className="text-[9px] font-mono uppercase tracking-[0.4em]">Node: ZW-AI-V6.7</span>
-                        <span className="text-[9px] font-mono">{chart.display.lunarDetail}</span>
+                        <span className="text-[8px] font-mono uppercase tracking-[0.4em]">Node: ZW-AI-V6.9</span>
+                        <span className="text-[8px] font-mono">{chart.display.lunarDetail}</span>
                     </div>
                 </div>
             </div>
@@ -176,45 +174,45 @@ const MagazineReport = ({ data, chart, question }: { data: AIResponse, chart: Ch
             <div className="pdf-page">
                 <div className="report-grain"></div>
                 <div className="content-wrap">
-                    <div className="flex justify-between items-end mb-10 pb-4 border-b-2 border-slate-900">
-                        <span className="text-2xl font-serif-heavy italic">Technical Parameters</span>
-                        <div className="bg-slate-900 text-white px-6 py-2 rounded-full text-sm font-black rotate-2 shadow-lg">
+                    <div className="flex justify-between items-end mb-8 pb-4 border-b-2 border-slate-900">
+                        <span className="text-xl font-serif-heavy italic">Technical Parameters</span>
+                        <div className="bg-slate-900 text-white px-5 py-2 rounded-full text-[10px] font-black rotate-2 shadow-lg">
                             {data.executive_summary.direction}
                         </div>
                     </div>
 
-                    <div className="space-y-10 flex-1 overflow-hidden">
-                        <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-200">
-                            <span className="text-[11px] font-sans-bold uppercase text-slate-400 tracking-widest mb-4 block flex items-center gap-3"><Activity size={14}/> 生辰四柱動態配置</span>
-                            <div className="grid grid-cols-4 gap-3">
+                    <div className="space-y-8 flex-1 overflow-hidden">
+                        <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-200">
+                            <span className="text-[9px] font-sans-bold uppercase text-slate-400 tracking-widest mb-3 block flex items-center gap-2"><Activity size={12}/> 生辰四柱動態配置</span>
+                            <div className="grid grid-cols-4 gap-2">
                                 {[chart.bazi.year, chart.bazi.month, chart.bazi.day, chart.bazi.hour].map((p, i) => (
-                                    <div key={i} className="bg-white p-4 rounded-xl border border-slate-100 text-center shadow-sm">
-                                        <span className="text-[9px] text-slate-400 block mb-1 font-black">{['年','月','日','時'][i]}</span>
-                                        <span className="text-xl font-black text-slate-900">{p}</span>
+                                    <div key={i} className="bg-white p-3 rounded-xl border border-slate-100 text-center shadow-sm">
+                                        <span className="text-[8px] text-slate-400 block mb-1 font-black">{['年','月','日','時'][i]}</span>
+                                        <span className="text-lg font-black text-slate-900">{p}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="p-6 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm">
-                                <span className="text-[11px] font-sans-bold uppercase text-slate-400 tracking-widest mb-3 block">命宮主星矩陣</span>
-                                <div className="flex flex-wrap gap-1.5">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-5 bg-white rounded-[2rem] border border-slate-200 shadow-sm">
+                                <span className="text-[9px] font-sans-bold uppercase text-slate-400 tracking-widest mb-2 block">命宮主星矩陣</span>
+                                <div className="flex flex-wrap gap-1">
                                     {chart.ziwei.grid.find(p => p.isLifePalace)?.stars.map((s, i) => (
-                                        <span key={i} className={`px-3 py-1.5 rounded-lg text-xs font-black bg-slate-50 border border-slate-100 shadow-sm ${s.color}`}>
+                                        <span key={i} className={`px-2 py-1 rounded-lg text-[10px] font-black bg-slate-50 border border-slate-100 shadow-sm ${s.color}`}>
                                             {s.name}{s.transformation ? `[化${s.transformation}]` : ''}
                                         </span>
                                     )) || '無主星'}
                                 </div>
                             </div>
-                            <div className="p-6 bg-indigo-900 text-white rounded-[2.5rem] shadow-xl relative overflow-hidden">
-                                <span className="text-[11px] font-sans-bold uppercase text-indigo-300 tracking-widest mb-3 block relative z-10">五行格局</span>
-                                <p className="text-3xl font-serif-heavy italic mb-1 relative z-10">{chart.ziwei.bureau}</p>
-                                <span className="text-[9px] opacity-60 font-mono relative z-10 uppercase tracking-widest">{chart.ziwei.fiveElements} Phase Dynamics</span>
+                            <div className="p-5 bg-indigo-900 text-white rounded-[2rem] shadow-xl relative overflow-hidden">
+                                <span className="text-[9px] font-sans-bold uppercase text-indigo-300 tracking-widest mb-2 block relative z-10">五行格局</span>
+                                <p className="text-2xl font-serif-heavy italic mb-1 relative z-10">{chart.ziwei.bureau}</p>
+                                <span className="text-[8px] opacity-60 font-mono relative z-10 uppercase tracking-widest">{chart.ziwei.fiveElements} Phase Dynamics</span>
                             </div>
                         </div>
 
-                        <div className="magazine-dropcap text-base leading-relaxed text-slate-800 text-justify font-medium pt-6 border-t border-slate-100 pdf-text-container">
+                        <div className="magazine-dropcap text-sm leading-relaxed text-slate-800 text-justify font-medium pt-4 border-t border-slate-100 pdf-text-container">
                             {data.executive_summary.description}
                         </div>
                     </div>
@@ -225,33 +223,32 @@ const MagazineReport = ({ data, chart, question }: { data: AIResponse, chart: Ch
             <div className="pdf-page">
                 <div className="report-grain"></div>
                 <div className="content-wrap">
-                    <div className="mb-10 pb-4 border-b-2 border-slate-900 flex justify-between items-center">
-                        <span className="text-2xl font-serif-heavy italic">Strategic Decoding</span>
-                        <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">Section 03</span>
+                    <div className="mb-8 pb-4 border-b-2 border-slate-900 flex justify-between items-center">
+                        <span className="text-xl font-serif-heavy italic">Strategic Decoding</span>
+                        <span className="text-[8px] font-mono text-slate-400 uppercase tracking-widest">Section 03</span>
                     </div>
 
-                    {/* 重點優化：流年驅動力色塊框，確保內容不溢出 */}
-                    <div className="bg-slate-900 text-white p-10 rounded-[3rem] relative overflow-hidden shadow-2xl mb-8 border border-indigo-500/30">
-                        <div className="absolute bottom-0 right-0 w-48 h-48 bg-indigo-600/10 rounded-full translate-x-1/4 translate-y-1/4 blur-3xl"></div>
-                        <h4 className="text-2xl font-serif-heavy italic mb-6 flex items-center gap-4 text-amber-400 relative z-10">
-                            <div className="w-10 h-1 bg-amber-400 rounded-full"></div>
+                    <div className="bg-slate-900 text-white p-8 rounded-[2rem] relative overflow-hidden shadow-2xl mb-6 border border-indigo-500/30">
+                        <div className="absolute bottom-0 right-0 w-40 h-40 bg-indigo-600/10 rounded-full translate-x-1/4 translate-y-1/4 blur-3xl"></div>
+                        <h4 className="text-xl font-serif-heavy italic mb-4 flex items-center gap-4 text-amber-400 relative z-10">
+                            <div className="w-8 h-1 bg-amber-400 rounded-full"></div>
                             流年驅動力分析 (Real-time Analysis)
                         </h4>
-                        <div className="space-y-4 relative z-10 pdf-text-container">
-                            <p className="text-xl font-black leading-tight text-white">{data.zodiac_fortune?.summary}</p>
-                            <p className="text-sm opacity-90 leading-relaxed italic text-slate-100">{data.zodiac_fortune?.zodiac_annual_fortune}</p>
+                        <div className="space-y-3 relative z-10 pdf-text-container">
+                            <p className="text-lg font-black leading-tight text-white">{data.zodiac_fortune?.summary}</p>
+                            <p className="text-[12px] opacity-90 leading-relaxed italic text-slate-100">{data.zodiac_fortune?.zodiac_annual_fortune}</p>
                         </div>
                     </div>
 
-                    <div className="space-y-6 flex-1 overflow-hidden">
-                        <div className="p-8 border-2 border-slate-200 rounded-[2.5rem] bg-white shadow-sm">
-                            <span className="text-[9px] font-sans-bold uppercase text-indigo-600 block mb-4 tracking-widest">Critical Warning Matrix</span>
-                            <p className="text-xl font-serif-heavy italic leading-snug text-slate-800 underline decoration-indigo-200 underline-offset-[10px] decoration-4 pdf-text-container">"{data.zodiac_fortune?.warning}"</p>
+                    <div className="space-y-4 flex-1 overflow-hidden">
+                        <div className="p-6 border-2 border-slate-200 rounded-[2rem] bg-white shadow-sm">
+                            <span className="text-[8px] font-sans-bold uppercase text-indigo-600 block mb-3 tracking-widest">Critical Warning Matrix</span>
+                            <p className="text-lg font-serif-heavy italic leading-snug text-slate-800 underline decoration-indigo-200 underline-offset-[8px] decoration-4 pdf-text-container">"{data.zodiac_fortune?.warning}"</p>
                         </div>
-                        <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex-1 overflow-hidden">
-                            <span className="text-[9px] font-sans-bold uppercase text-slate-400 block mb-4 tracking-widest">Metaphysical Logic</span>
-                            <h5 className="text-xl font-black mb-4 text-slate-900">{data.metaphysical_perspective.title}</h5>
-                            <p className="text-sm italic text-slate-700 font-quote leading-relaxed pdf-text-container">{data.metaphysical_perspective.content}</p>
+                        <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 flex-1 overflow-hidden">
+                            <span className="text-[8px] font-sans-bold uppercase text-slate-400 block mb-3 tracking-widest">Metaphysical Logic</span>
+                            <h5 className="text-lg font-black mb-3 text-slate-900">{data.metaphysical_perspective.title}</h5>
+                            <p className="text-[12px] italic text-slate-700 font-quote leading-relaxed pdf-text-container">{data.metaphysical_perspective.content}</p>
                         </div>
                     </div>
                 </div>
@@ -261,28 +258,28 @@ const MagazineReport = ({ data, chart, question }: { data: AIResponse, chart: Ch
             <div className="pdf-page">
                 <div className="report-grain"></div>
                 <div className="content-wrap">
-                    <div className="mb-10 pb-4 border-b-2 border-slate-900">
-                        <span className="text-2xl font-serif-heavy italic">Actionable Strategies</span>
+                    <div className="mb-8 pb-4 border-b-2 border-slate-900">
+                        <span className="text-xl font-serif-heavy italic">Actionable Strategies</span>
                     </div>
 
-                    <div className="space-y-5 flex-1 overflow-hidden">
+                    <div className="space-y-4 flex-1 overflow-hidden">
                         {data.actionable_advice.map((a, idx) => (
-                            <div key={idx} className="bg-white p-6 rounded-[2.5rem] border border-slate-200 flex gap-6 items-center shadow-sm">
-                                <div className="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-xl font-black shrink-0 shadow-lg">{idx + 1}</div>
+                            <div key={idx} className="bg-white p-5 rounded-[2rem] border border-slate-200 flex gap-5 items-center shadow-sm">
+                                <div className="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-lg font-black shrink-0 shadow-lg">{idx + 1}</div>
                                 <div className="flex-1 overflow-hidden">
-                                    <h5 className="text-[9px] font-sans-bold uppercase tracking-[0.2em] text-indigo-600 mb-1">{a.type}</h5>
-                                    <p className="text-lg font-black leading-tight text-slate-900 tracking-tighter pdf-text-container">{a.content}</p>
+                                    <h5 className="text-[8px] font-sans-bold uppercase tracking-[0.2em] text-indigo-600 mb-1">{a.type}</h5>
+                                    <p className="text-base font-black leading-tight text-slate-900 tracking-tighter pdf-text-container">{a.content}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
 
                     {data.groundingSources && data.groundingSources.length > 0 && (
-                        <div className="mt-8 pt-8 border-t border-slate-100">
-                            <span className="text-[9px] font-sans-bold uppercase text-slate-300 tracking-[0.5em] block mb-4 text-center">Calibrated Data Grounding Intelligence</span>
-                            <div className="flex flex-wrap justify-center gap-4">
+                        <div className="mt-6 pt-6 border-t border-slate-100">
+                            <span className="text-[8px] font-sans-bold uppercase text-slate-300 tracking-[0.5em] block mb-3 text-center">Calibrated Data Grounding Intelligence</span>
+                            <div className="flex flex-wrap justify-center gap-3">
                                 {data.groundingSources.map((s, i) => (
-                                    <span key={i} className="text-[9px] text-slate-400 font-mono underline">{s.title}</span>
+                                    <span key={i} className="text-[8px] text-slate-400 font-mono underline">{s.title}</span>
                                 ))}
                             </div>
                         </div>
