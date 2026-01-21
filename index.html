@@ -7,6 +7,7 @@
     <title>東西命理科學顧問 - AI 2026 趨勢分析</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@900&family=Playfair+Display:ital,wght@0,900;1,900&family=Libre+Baskerville:ital@1&family=Montserrat:wght@800&display=swap');
         
@@ -21,94 +22,22 @@
         
         .magazine-dropcap::first-letter {
             font-family: 'Playfair Display', serif;
-            font-size: 5rem;
+            font-size: 8rem;
             float: left;
-            margin-right: 0.8rem;
+            margin-right: 1.25rem;
             line-height: 0.8;
             color: #0f172a;
             font-style: italic;
         }
 
-        /* 物理 A4 頁面佈局 */
-        .pdf-container {
-            background: #f1f5f9;
-            padding: 60px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
-
-        .pdf-page {
-            width: 210mm;
-            /* 修正：設為 296.3mm 配合 html2pdf 的精確度需求，徹底消除首尾空白 */
-            height: 296.3mm; 
-            padding: 20mm 15mm;
-            margin-bottom: 40px; 
-            background: white;
-            position: relative;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-        }
-
-        /* 導出模式下的強制修正 */
-        .html2pdf__container .pdf-container {
-            padding: 0 !important;
-            margin: 0 !important;
-            background: white !important;
-            display: block !important;
-        }
-
-        .html2pdf__container .pdf-page {
-            box-shadow: none !important;
-            margin: 0 !important;
-            border: none !important;
-            width: 210mm !important;
-            height: 296.3mm !important;
-            page-break-after: always !important;
-            page-break-inside: avoid !important;
-            /* 解決 html2canvas 文字渲染偏移 */
-            overflow-wrap: break-word !important;
-            word-break: break-all !important;
-        }
-
-        /* 最後一頁強制不分頁，防止產生空白尾頁 */
-        .html2pdf__container .pdf-page:last-child {
-            page-break-after: avoid !important;
-        }
-
-        /* 確保色塊內的文字正確換行且不溢出 */
-        .pdf-text-container {
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            line-height: 1.6;
-        }
-
         .report-grain {
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            opacity: 0.02;
+            opacity: 0.03;
             pointer-events: none;
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-        }
-
-        .content-wrap {
-            position: relative;
-            z-index: 10;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
         }
 
         @media print {
             .no-print { display: none !important; }
-            body { background: white !important; margin: 0; padding: 0; }
-            .pdf-container { padding: 0; background: white; width: 100%; display: block; }
-            .pdf-page { box-shadow: none; margin: 0; page-break-after: always; }
         }
     </style>
 <script type="importmap">

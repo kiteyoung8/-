@@ -66,7 +66,7 @@ export interface AIResponse {
         summary: string;
         warning: string;
         zodiac_annual_fortune: string;
-        fortune_2025: string; // 新增 2025 年簡要運勢
+        fortune_2025: string;
     };
     metaphysical_perspective: {
         title: string;
@@ -77,6 +77,12 @@ export interface AIResponse {
         psychology: string;
         physics: string;
     };
+    strategic_solutions: Array<{
+        title: string;
+        priority: 'High' | 'Medium' | 'Low';
+        description: string;
+        impact: string;
+    }>;
     actionable_advice: Array<{
         type: string;
         content: string;
