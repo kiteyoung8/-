@@ -16,7 +16,7 @@ export const callGeminiAPI = async (
 
     const ai = new GoogleGenAI({ apiKey });
     
-    // 構建詳細的十二宮位星曜配置，讓 AI 完整理解格局
+    // 構建詳細的十二宮位星曜配置
     const gridDetails = chartData.ziwei.grid.map(p => {
         const stars = p.stars.map(s => `${s.name}${s.transformation ? `(化${s.transformation})` : ''}`).join('、');
         return `【${p.name} / ${p.zhi}宮】：${stars || '無主星'}${p.isLifePalace ? ' (命宮)' : ''}${p.isBodyPalace ? ' (身宮)' : ''}`;
@@ -25,26 +25,19 @@ export const callGeminiAPI = async (
     const systemInstruction = `
     # Role: 東西命理戰略總顧問 (Expert Strategist & Metaphysician)
     
-    ## 核心任務：建議方案 (Strategic Solutions)
+    ## 核心任務
     你是一位融合紫微斗數大數據與現代戰略管理的高端顧問。你必須根據諮詢者的「完整命盤數據」來回答問題。
+    你的回覆必須完全遵守 JSON 格式，且包含「strategic_solutions」陣列。
     
-    你的回覆必須包含「strategic_solutions」陣列。每個方案必須嚴格執行以下要求：
-    1. **配合命盤解析**：方案內容必須引用命盤中的具體星曜或宮位關係（例如：利用官祿宮的XX星能量、避開廉貞化忌的衝擊）。
-    2. **具備戰略質感**：名稱要高端且專業。
-    3. **具體執行步驟**：不可以是通用的雞湯，必須具備可操作性的戰略路徑。
-    4. **能量轉換預測**：說明該行動如何改善命盤能量流動。
-
-    ## 分析準則：
-    - **宮位關聯**：問財運看財帛/田宅/祿存，問事業看官祿，問感情看夫妻。
-    - **流年四化 (2026 丙午)**：天同化祿、天機化權、文昌化科、廉貞化忌。分析這些四化如何衝擊諮詢者的宮位。
+    ## 分析準則
+    - **配合命盤解析**：方案內容必須引用命盤中的具體星曜或宮位關係（例如：利用官祿宮的XX星能量、避開廉貞化忌的衝擊）。
+    - **流年四化 (2026 丙午)**：天同化祿、天機化權、文昌化科、廉貞化忌。
     - **文風**：專業、深沉、冷靜、果斷。
     - **語言**：繁體中文。
 
-    ## 諮詢者完整命盤數據：
-    - 姓名: ${chartData.profile.name}
-    - 性別: ${chartData.profile.gender === 'male' ? '乾造' : '坤造'}
+    ## 諮詢者數據：
+    - 姓名: ${chartData.profile.name} (性別: ${chartData.profile.gender === 'male' ? '乾造' : '坤造'})
     - 五行局: ${chartData.ziwei.fiveElements}局
-    - 命盤分佈：
     ${gridDetails}
     `;
 
@@ -111,16 +104,24 @@ export const callGeminiAPI = async (
         required: ["executive_summary", "zodiac_fortune", "strategic_solutions", "metaphysical_perspective", "scientific_decoding", "actionable_advice"]
     };
 
-    const contents = history.filter(m => m.type !== 'error').map(m => ({
-        role: m.type === 'user' ? 'user' : 'model',
-        parts: [{ text: m.type === 'user' ? (m.content || '') : (m.data ? JSON.stringify(m.data) : m.content || '') }]
-    }));
+    // 優化對話歷史：將過往的 JSON 數據簡化為摘要，減少 Token 負擔並防止模型解析混亂
+    const contents = history.filter(m => m.type !== 'error' && !m.isGreeting).map(m => {
+        let textContent = m.content || "";
+        if (m.data) {
+            textContent = `歷史分析標題：${m.data.executive_summary.title}。核心方向：${m.data.executive_summary.direction}。`;
+        }
+        return {
+            role: m.type === 'user' ? 'user' : 'model',
+            parts: [{ text: textContent }]
+        };
+    });
 
-    contents.push({ role: 'user', parts: [{ text: `諮詢問題：${userQuery}` }] });
+    contents.push({ role: 'user', parts: [{ text: `諮詢問題：${userQuery}\n請輸出完整的 JSON 結構。` }] });
 
     try {
+        // 切換為 gemini-3-flash-preview：更適合高速、大體量 JSON 生成與搜尋任務
         const stream = await ai.models.generateContentStream({
-            model: "gemini-3-pro-preview",
+            model: "gemini-3-flash-preview",
             contents,
             config: {
                 systemInstruction,
@@ -139,7 +140,9 @@ export const callGeminiAPI = async (
             }
         }
         
-        return JSON.parse(fullText) as AIResponse;
+        // 確保移除可能存在的 Markdown 標記
+        const cleanedText = fullText.replace(/```json/g, "").replace(/```/g, "").trim();
+        return JSON.parse(cleanedText) as AIResponse;
     } catch (error: any) {
         console.error("Gemini API Error:", error);
         throw error;

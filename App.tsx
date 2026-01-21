@@ -4,7 +4,8 @@ import {
   Sparkles, Brain, Edit3, Loader2, RefreshCw, Download, 
   ArrowRight, ChevronRight,
   Compass, BookOpen, Rocket, Target, CheckCircle2,
-  HeartPulse, Users, Wallet, Microscope, ShieldCheck, Search
+  HeartPulse, Users, Wallet, Microscope, ShieldCheck, Search,
+  AlertCircle
 } from 'lucide-react';
 import { calculateChart } from './MetaphysicsEngine';
 import { callGeminiAPI } from './geminiService'; 
@@ -29,29 +30,24 @@ const INITIAL_MESSAGES: Message[] = [{
 const THINKING_STEPS = [
     { label: "啟動戰略引擎", icon: <Rocket size={18}/>, color: "text-indigo-400" },
     { label: "解析 2026 丙午年流年四化軌跡", icon: <Sparkles size={18}/>, color: "text-amber-400" },
-    { label: "深度對齊命宮與十二宮位星曜配置", icon: <Compass size={18}/>, color: "text-blue-400" },
-    { label: "檢索 Google Search 全球政經與能量趨勢", icon: <Search size={18}/>, color: "text-emerald-400" },
-    { label: "構建客製化人生戰略轉化方案", icon: <ShieldCheck size={18}/>, color: "text-rose-400" }
+    { label: "深度對齊命盤宮位星曜配置", icon: <Compass size={18}/>, color: "text-blue-400" },
+    { label: "檢索 Google Search 全球趨勢", icon: <Search size={18}/>, color: "text-emerald-400" },
+    { label: "構建客製化戰略方案", icon: <ShieldCheck size={18}/>, color: "text-rose-400" }
 ];
 
-// --- [Component] 專業級直式 PDF 報告模板 ---
 const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[], chart: ChartData, id: string }) => {
     const reportData = messages.filter(m => m.data);
 
     return (
         <div id={id} className="bg-white text-slate-900" style={{ width: '794px', minHeight: '1123px', padding: '0', margin: '0', boxSizing: 'border-box', fontFamily: 'serif', display: 'block', overflow: 'hidden' }}>
-            
-            {/* 封面頁 */}
             <div className="flex flex-col items-center justify-center text-center relative" style={{ height: '1120px', width: '794px', pageBreakAfter: 'always', backgroundColor: '#ffffff', padding: '0 80px', boxSizing: 'border-box' }}>
                 <div className="w-full border-t-4 border-b-4 border-indigo-600 py-24 relative flex flex-col items-center">
                     <div className="absolute -top-5 bg-white px-8 py-1 text-indigo-600 text-[14px] font-black tracking-[0.5em] uppercase border-2 border-indigo-600 rounded-full whitespace-nowrap">
                         Strategic Destiny Analysis
                     </div>
-                    
                     <h1 className="text-8xl font-black italic text-slate-900 leading-none mb-16 tracking-tighter text-center">
                         人生戰略<br/><span className="text-7xl">諮詢報告</span>
                     </h1>
-
                     <div className="mt-20 border-t border-slate-100 pt-16 space-y-12 w-full">
                         <div className="grid grid-cols-2 gap-12 w-full">
                             <div className="text-left border-l-4 border-indigo-600 pl-8">
@@ -63,7 +59,6 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                                 <p className="text-3xl font-bold text-slate-800">{chart.ziwei.animal} / {chart.ziwei.fiveElements}局</p>
                             </div>
                         </div>
-                        
                         <div className="pt-10 flex justify-center items-center gap-6 text-slate-400">
                             <div className="h-px w-16 bg-slate-200"></div>
                             <span className="text-sm italic font-serif tracking-widest">ISSUED ON: {new Date().toLocaleDateString()}</span>
@@ -75,8 +70,6 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                     <p className="text-[11px] text-slate-300 font-mono tracking-[0.8em] uppercase">Intelligence by Gemini AI System</p>
                 </div>
             </div>
-
-            {/* 內容區域 */}
             <div className="p-20 space-y-24" style={{ width: '794px', boxSizing: 'border-box' }}>
                 {reportData.map((m, idx) => (
                     <div key={idx} className="border-b border-slate-100 pb-20 last:border-0">
@@ -87,7 +80,6 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                                 <h2 className="text-4xl font-bold text-slate-800 leading-tight">{m.question}</h2>
                             </div>
                         </div>
-
                         <div className="space-y-10">
                             <div style={{ pageBreakInside: 'avoid' }}>
                                 <h3 className="text-5xl font-black italic text-slate-900 border-l-8 border-indigo-600 pl-10 leading-tight mb-8">
@@ -99,12 +91,10 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                                     </span>
                                 </div>
                             </div>
-                            
                             <p className="text-xl text-slate-700 leading-[1.8] text-justify whitespace-pre-wrap font-serif italic" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                                 {m.data?.executive_summary.description}
                             </p>
                         </div>
-
                         {m.data?.strategic_solutions && (
                             <div className="mt-16 space-y-8">
                                 <h4 className="text-[12px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-3 mb-6">
@@ -128,7 +118,6 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                                 </div>
                             </div>
                         )}
-
                         <div className="mt-16 space-y-6">
                             <h4 className="text-[12px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-3 mb-6">
                                 <CheckCircle2 size={20}/> 具體執行清單 (Action Items)
@@ -137,7 +126,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                                 {m.data?.actionable_advice.map((adv, aIdx) => (
                                     <div key={aIdx} className="flex gap-6 p-6 bg-indigo-50/40 border border-indigo-100 rounded-3xl items-start" style={{ pageBreakInside: 'avoid' }}>
                                         <span className="font-black text-indigo-600 text-[13px] shrink-0 pt-1">[{adv.type}]</span>
-                                        <p className="text-[15px] text-slate-700 font-medium導致的 leading-relaxed">{adv.content}</p>
+                                        <p className="text-[15px] text-slate-700 font-medium leading-relaxed">{adv.content}</p>
                                     </div>
                                 ))}
                             </div>
@@ -145,7 +134,6 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                     </div>
                 ))}
             </div>
-
             <div className="p-24 text-center border-t border-slate-100" style={{ width: '794px', pageBreakBefore: 'auto' }}>
                 <p className="text-slate-300 font-mono text-[12px] uppercase tracking-[1em] mb-6">
                     End of Analysis Report
@@ -171,7 +159,6 @@ export const App = () => {
 
     useEffect(() => { if (!isReportMode) endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isLoading, isReportMode]);
 
-    // 儀式感加載文字輪播
     useEffect(() => {
         let interval: any;
         if (isLoading) {
@@ -189,33 +176,43 @@ export const App = () => {
         setMessages(INITIAL_MESSAGES);
         setIsReportMode(false);
         setIsLoading(false);
+        setStreamingTitle("");
         setInput('');
         setIsExporting(false);
     };
 
     const performQuery = async (queryText: string) => {
         if (!queryText.trim() || isLoading || !chart) return;
+        
         setIsReportMode(false);
-        setMessages(p => [...p, { type: 'user', content: queryText }]);
         setIsLoading(true);
         setStreamingTitle("");
         setInput('');
 
+        const newHistory = [...messages, { type: 'user' as const, content: queryText }];
+        setMessages(newHistory);
+
         try {
             const data = await callGeminiAPI(chart, queryText, messages, (fullText) => {
-                // 部分解析流式顯示標題 (方案 2)
                 try {
-                    const match = fullText.match(/"title":\s*"([^"]+)"/);
-                    if (match && match[1]) {
-                        setStreamingTitle(match[1]);
+                    const titleMatch = fullText.match(/"title":\s*"([^"]+)"/);
+                    if (titleMatch && titleMatch[1]) {
+                        setStreamingTitle(titleMatch[1]);
                     }
-                } catch (e) { /* Ignore partial parse errors */ }
+                } catch (e) {}
             });
+            
             setMessages(p => [...p, { type: 'ai', data, question: queryText }]);
         } catch (err: any) {
-            setMessages(p => [...p, { type: 'error', content: "分析連結中斷，請稍後再試。" }]);
+            console.error("Query Error:", err);
+            setMessages(p => [...p, { 
+                type: 'error', 
+                content: "網路波動或 AI 思考過久。這通常是因為搜尋任務繁忙，請嘗試簡化提問後再次諮詢。",
+                question: queryText
+            }]);
         } finally {
             setIsLoading(false);
+            setStreamingTitle("");
         }
     };
 
@@ -230,18 +227,7 @@ export const App = () => {
             margin: 0,
             filename: `戰略命理報告_${chart.profile.name}.pdf`,
             image: { type: 'jpeg', quality: 1.0 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true, 
-                letterRendering: true,
-                logging: false,
-                scrollY: 0,
-                scrollX: 0,
-                x: 0,
-                y: 0,
-                width: 794,
-                windowWidth: 794
-            },
+            html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak: { mode: ['css', 'legacy'] }
         };
@@ -249,7 +235,7 @@ export const App = () => {
         try {
             await html2pdf().from(element).set(opt).save();
         } catch (error) {
-            console.error('PDF Export Failed:', error);
+            console.error('PDF Export Error:', error);
             alert("匯出 PDF 時發生錯誤。");
         } finally {
             setIsExporting(false);
@@ -269,7 +255,6 @@ export const App = () => {
                         </div>
                         <h1 className="text-xl font-serif font-black text-white tracking-tighter hidden md:block italic">東西命理科學顧問</h1>
                     </div>
-                    
                     <div className="flex gap-4">
                         {messages.some(m => m.data) && (
                             <div className="flex bg-white/5 p-1 rounded-full border border-white/10">
@@ -283,7 +268,7 @@ export const App = () => {
                                 {isExporting ? '生成中...' : '下載報告'}
                             </button>
                         )}
-                        <button onClick={handleReset} title="清空所有資料回到初始狀態" className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-full border border-white/10 transition-all active:rotate-180 duration-500"><RefreshCw size={18}/></button>
+                        <button onClick={handleReset} title="重置對話" className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-full border border-white/10 transition-all active:rotate-180 duration-500"><RefreshCw size={18}/></button>
                     </div>
                 </div>
             </div>
@@ -311,7 +296,7 @@ export const App = () => {
                                     ) : m.isGreeting ? (
                                         <div className="bg-slate-900/40 p-10 rounded-[2.5rem] border border-white/5 italic text-slate-400 text-lg font-serif font-black leading-relaxed shadow-inner">{m.content}</div>
                                     ) : m.data ? (
-                                        <div className="bg-slate-900/60 backdrop-blur-3xl p-8 md:p-14 rounded-[3.5rem] border border-indigo-500/20 shadow-2xl relative overflow-hidden group">
+                                        <div className="bg-slate-900/60 backdrop-blur-3xl p-8 md:p-14 rounded-[3.5rem] border border-indigo-500/20 shadow-2xl relative overflow-hidden">
                                             <div className="relative z-10 space-y-10">
                                                 <div className="space-y-4">
                                                     <div className="flex items-center gap-3"><span className="h-10 w-2 bg-indigo-600 rounded-full"></span><h2 className="text-4xl md:text-5xl font-serif font-black text-white italic tracking-tight">{m.data.executive_summary.title}</h2></div>
@@ -342,6 +327,17 @@ export const App = () => {
                                                 )}
                                             </div>
                                         </div>
+                                    ) : m.type === 'error' ? (
+                                        <div className="flex justify-center">
+                                            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-8 py-6 rounded-3xl text-sm font-bold flex flex-col items-center gap-4 max-w-lg text-center">
+                                                <div className="flex items-center gap-3 text-red-500">
+                                                    <AlertCircle size={24}/> 
+                                                    <span className="text-lg font-black">分析中斷</span>
+                                                </div>
+                                                <p className="text-slate-400 leading-relaxed font-medium">{m.content}</p>
+                                                <button onClick={() => m.question && performQuery(m.question)} className="px-6 py-2 bg-red-500 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-red-600">點此重新嘗試</button>
+                                            </div>
+                                        </div>
                                     ) : null}
                                 </div>
                             ))}
@@ -357,19 +353,16 @@ export const App = () => {
                                                     {THINKING_STEPS[thinkingStep].label}...
                                                 </p>
                                                 <div className="flex items-center gap-2 text-slate-500 text-xs font-black uppercase tracking-widest">
-                                                    {THINKING_STEPS[thinkingStep].icon} 戰略顧問思考軌跡
+                                                    {THINKING_STEPS[thinkingStep].icon} 高速引擎正在處理
                                                 </div>
                                             </div>
                                         </div>
-                                        
-                                        {/* 部分解析標題展示 (方案 2) */}
                                         {streamingTitle && (
                                             <div className="pt-6 border-t border-white/5 animate-fade-in">
-                                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">正在構建標題 (Probing Output)...</p>
+                                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">預覽戰略核心 (Partial Preview)...</p>
                                                 <h3 className="text-2xl font-serif font-black text-indigo-400 italic">「{streamingTitle}」</h3>
                                             </div>
                                         )}
-
                                         <div className="grid grid-cols-5 gap-2 pt-4">
                                             {THINKING_STEPS.map((_, i) => (
                                                 <div key={i} className={`h-1 rounded-full transition-all duration-700 ${i === thinkingStep ? 'bg-indigo-500 w-full' : 'bg-white/10 w-full opacity-30'}`}></div>
@@ -383,7 +376,7 @@ export const App = () => {
                     </>
                 ) : (
                     <div className="w-full flex flex-col items-center gap-10 py-10 bg-white/5 rounded-[4rem]">
-                        <div className="text-center space-y-2"><h2 className="text-2xl font-serif font-black italic text-white">報告預覽區</h2><p className="text-slate-400 text-xs">下載 PDF 以獲取最佳報章級閱讀體驗。</p></div>
+                        <div className="text-center space-y-2"><h2 className="text-2xl font-serif font-black italic text-white">報告預覽區</h2><p className="text-slate-400 text-xs">下載 PDF 以獲取最佳閱讀體驗。</p></div>
                         <div className="shadow-2xl transform scale-[0.6] md:scale-90 origin-top bg-white border border-slate-200">
                             <ProfessionalPDFTemplate id="report-preview-view" messages={messages} chart={chart} />
                         </div>
@@ -395,14 +388,13 @@ export const App = () => {
                 <div className="fixed bottom-0 left-0 right-0 p-8 md:p-12 bg-gradient-to-t from-black via-black/95 to-transparent z-40">
                     <div className="max-w-4xl mx-auto space-y-6">
                         <form onSubmit={(e) => { e.preventDefault(); performQuery(input); }} className="relative group">
-                            <input value={input} onChange={e => setInput(e.target.value)} disabled={isLoading} placeholder="針對特定問題提問 (例如：2026 創業規劃、財富佈局...)" className="w-full bg-slate-900/90 backdrop-blur-3xl border border-white/10 rounded-full px-12 py-7 text-white text-xl outline-none focus:border-indigo-500/50 pr-28 shadow-2xl transition-all font-serif" />
+                            <input value={input} onChange={e => setInput(e.target.value)} disabled={isLoading} placeholder="輸入提問 (例如：2026 創業方向、感情佈局...)" className="w-full bg-slate-900/90 backdrop-blur-3xl border border-white/10 rounded-full px-12 py-7 text-white text-xl outline-none focus:border-indigo-500/50 pr-28 shadow-2xl transition-all font-serif" />
                             <button type="submit" disabled={!input.trim() || isLoading} className="absolute right-4 top-4 bottom-4 aspect-square bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-500 transition-all active:scale-90 disabled:opacity-30"><ChevronRight size={32} /></button>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* 隱藏渲染區域 */}
             <div className="fixed" style={{ top: '0', left: '0', zIndex: -1000, visibility: 'hidden', pointerEvents: 'none' }}>
                 <div style={{ width: '794px', backgroundColor: '#ffffff' }}>
                     {chart && <ProfessionalPDFTemplate id="report-pdf-export-source" messages={messages} chart={chart} />}
