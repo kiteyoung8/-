@@ -11,28 +11,36 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
 
     const ai = new GoogleGenAI({ apiKey });
     
-    const lifePalace = chartData.ziwei.grid.find(p => p.isLifePalace);
-    const lifeStars = lifePalace?.stars.map(s => `${s.name}${s.transformation ? `(化${s.transformation})` : ''}`).join('、') || '無主星';
+    // 構建詳細的十二宮位星曜配置，讓 AI 完整理解格局
+    const gridDetails = chartData.ziwei.grid.map(p => {
+        const stars = p.stars.map(s => `${s.name}${s.transformation ? `(化${s.transformation})` : ''}`).join('、');
+        return `【${p.name} / ${p.zhi}宮】：${stars || '無主星'}${p.isLifePalace ? ' (命宮)' : ''}${p.isBodyPalace ? ' (身宮)' : ''}`;
+    }).join('\n');
 
     const systemInstruction = `
-    # Role: 東西命理戰略總顧問
+    # Role: 東西命理戰略總顧問 (Expert Strategist & Metaphysician)
     
     ## 核心任務：建議方案 (Strategic Solutions)
-    針對諮詢者的提問，你必須在回覆中加入「strategic_solutions」陣列。每個方案必須包含：
-    1. **title**: 具備戰略質感的名稱。
-    2. **priority**: "High", "Medium", 或 "Low"。
-    3. **description**: 具體的執行步驟與路徑。
-    4. **impact**: 該方案能如何轉化命盤能量或改善現實困境。
+    你是一位融合紫微斗數大數據與現代戰略管理的高端顧問。你必須根據諮詢者的「完整命盤數據」來回答問題。
+    
+    你的回覆必須包含「strategic_solutions」陣列。每個方案必須嚴格執行以下要求：
+    1. **配合命盤解析**：方案內容必須引用命盤中的具體星曜或宮位關係（例如：利用官祿宮的XX星能量、避開廉貞化忌的衝擊）。
+    2. **具備戰略質感**：名稱要高端。
+    3. **具體執行步驟**：不可以是通用的雞湯。
+    4. **能量轉換預測**：說明該行動如何改善命盤能量流動。
 
-    ## 分析原則：
-    - 結合《紫微斗數精成》與流年四化。
-    - 文風應具備高端顧問質感，專業、果斷、富含洞察力。
-    - 語系：繁體中文。
+    ## 分析準則：
+    - **宮位關聯**：問財運看財帛/田宅/祿存，問事業看官祿，問感情看夫妻。
+    - **流年四化 (2026 丙午)**：天同化祿、天機化權、文昌化科、廉貞化忌。分析這些四化如何衝擊諮詢者的宮位。
+    - **文風**：專業、深沉、冷靜、果斷。
+    - **語言**：繁體中文。
 
-    ## 命主數據：
+    ## 諮詢者完整命盤數據：
     - 姓名: ${chartData.profile.name}
-    - 命主格局: ${lifeStars}
-    - 流年關鍵: 2026 丙午年，天同化祿、天機化權、文昌化科、廉貞化忌。
+    - 性別: ${chartData.profile.gender === 'male' ? '乾造' : '坤造'}
+    - 五行局: ${chartData.ziwei.fiveElements}局
+    - 命宮格局與十二宮分佈：
+    ${gridDetails}
     `;
 
     const responseSchema = {

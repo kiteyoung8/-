@@ -20,6 +20,12 @@ const GUIDANCE_QUESTIONS = [
     { label: "健康提醒", icon: <HeartPulse size={20}/>, query: "分析我 2026 年的疾厄宮狀況，針對潛在的健康風險、身心平衡與生活節奏調整給予建議。" }
 ];
 
+const INITIAL_MESSAGES: Message[] = [{ 
+    type: 'ai', 
+    content: '尊貴的諮詢者，我是您的 AI 戰略顧問。我已為您排定命盤。您可以從下方的熱門主題中選擇，或直接在對話框輸入您的需求。', 
+    isGreeting: true 
+}];
+
 // --- [Component] 專業級直式 PDF 報告模板 ---
 const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[], chart: ChartData, id: string }) => {
     const reportData = messages.filter(m => m.data);
@@ -29,12 +35,12 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
             
             {/* 封面頁 */}
             <div className="flex flex-col items-center justify-center text-center relative" style={{ height: '1120px', width: '794px', pageBreakAfter: 'always', backgroundColor: '#ffffff', padding: '0 80px', boxSizing: 'border-box' }}>
-                <div className="w-full border-t-4 border-b-4 border-indigo-600 py-24 relative">
-                    <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-white px-8 py-1 text-indigo-600 text-[14px] font-black tracking-[0.5em] uppercase border-2 border-indigo-600 rounded-full whitespace-nowrap">
+                <div className="w-full border-t-4 border-b-4 border-indigo-600 py-24 relative flex flex-col items-center">
+                    <div className="absolute -top-5 bg-white px-8 py-1 text-indigo-600 text-[14px] font-black tracking-[0.5em] uppercase border-2 border-indigo-600 rounded-full whitespace-nowrap">
                         Strategic Destiny Analysis
                     </div>
                     
-                    <h1 className="text-8xl font-black italic text-slate-900 leading-none mb-16 tracking-tighter w-full">
+                    <h1 className="text-8xl font-black italic text-slate-900 leading-none mb-16 tracking-tighter text-center">
                         人生戰略<br/><span className="text-7xl">諮詢報告</span>
                     </h1>
 
@@ -146,11 +152,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
 
 export const App = () => {
     const [chart, setChart] = useState<ChartData | null>(null);
-    const [messages, setMessages] = useState<Message[]>([{ 
-        type: 'ai', 
-        content: '尊貴的諮詢者，我是您的 AI 戰略顧問。我已為您排定命盤。您可以從下方的熱門主題中選擇，或直接在對話框輸入您的需求。', 
-        isGreeting: true 
-    }]);
+    const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
     const [isLoading, setIsLoading] = useState(false);
     const [input, setInput] = useState('');
     const [isReportMode, setIsReportMode] = useState(false);
@@ -158,6 +160,16 @@ export const App = () => {
     const endRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => { if (!isReportMode) endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isLoading, isReportMode]);
+
+    // 清空所有資料，回到初始狀態
+    const handleReset = () => {
+        setChart(null);
+        setMessages(INITIAL_MESSAGES);
+        setIsReportMode(false);
+        setIsLoading(false);
+        setInput('');
+        setIsExporting(false);
+    };
 
     const performQuery = async (queryText: string) => {
         if (!queryText.trim() || isLoading || !chart) return;
@@ -180,7 +192,7 @@ export const App = () => {
         if (!element || !chart) return;
 
         setIsExporting(true);
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 2500));
 
         const opt = {
             margin: 0,
@@ -239,7 +251,7 @@ export const App = () => {
                                 {isExporting ? '生成中...' : '下載報告'}
                             </button>
                         )}
-                        <button onClick={() => setChart(null)} className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-full border border-white/10 transition-all"><RefreshCw size={18}/></button>
+                        <button onClick={handleReset} title="清空所有資料回到初始狀態" className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-full border border-white/10 transition-all active:rotate-180 duration-500"><RefreshCw size={18}/></button>
                     </div>
                 </div>
             </div>
@@ -247,7 +259,7 @@ export const App = () => {
             <div className="w-full max-w-5xl px-6 pt-32 pb-48 flex flex-col gap-12">
                 {!isReportMode ? (
                     <>
-                        <ZiweiChart chart={chart} onEdit={() => setChart(null)} />
+                        <ZiweiChart chart={chart} onEdit={handleReset} />
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 py-4">
                             {GUIDANCE_QUESTIONS.map((q, idx) => (
                                 <button key={idx} onClick={() => performQuery(q.query)} disabled={isLoading} className="flex flex-col items-center justify-center gap-3 p-6 bg-slate-900/50 border border-white/5 rounded-3xl hover:bg-indigo-600/20 hover:border-indigo-500/50 transition-all group active:scale-95 disabled:opacity-50">
