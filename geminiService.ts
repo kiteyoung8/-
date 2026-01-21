@@ -1,8 +1,13 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { ChartData, AIResponse, Message } from "./types";
 
-export const callGeminiAPI = async (chartData: ChartData, userQuery: string, history: Message[] = []): Promise<AIResponse> => {
+export const callGeminiAPI = async (
+    chartData: ChartData, 
+    userQuery: string, 
+    history: Message[] = [],
+    onStream?: (chunk: string) => void
+): Promise<AIResponse> => {
     const apiKey = process.env.API_KEY;
     
     if (!apiKey || apiKey === "undefined" || apiKey.trim() === "") {
@@ -25,8 +30,8 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
     
     你的回覆必須包含「strategic_solutions」陣列。每個方案必須嚴格執行以下要求：
     1. **配合命盤解析**：方案內容必須引用命盤中的具體星曜或宮位關係（例如：利用官祿宮的XX星能量、避開廉貞化忌的衝擊）。
-    2. **具備戰略質感**：名稱要高端。
-    3. **具體執行步驟**：不可以是通用的雞湯。
+    2. **具備戰略質感**：名稱要高端且專業。
+    3. **具體執行步驟**：不可以是通用的雞湯，必須具備可操作性的戰略路徑。
     4. **能量轉換預測**：說明該行動如何改善命盤能量流動。
 
     ## 分析準則：
@@ -39,7 +44,7 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
     - 姓名: ${chartData.profile.name}
     - 性別: ${chartData.profile.gender === 'male' ? '乾造' : '坤造'}
     - 五行局: ${chartData.ziwei.fiveElements}局
-    - 命宮格局與十二宮分佈：
+    - 命盤分佈：
     ${gridDetails}
     `;
 
@@ -114,7 +119,7 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
     contents.push({ role: 'user', parts: [{ text: `諮詢問題：${userQuery}` }] });
 
     try {
-        const response = await ai.models.generateContent({
+        const stream = await ai.models.generateContentStream({
             model: "gemini-3-pro-preview",
             contents,
             config: {
@@ -124,7 +129,17 @@ export const callGeminiAPI = async (chartData: ChartData, userQuery: string, his
                 tools: [{ googleSearch: {} }]
             },
         });
-        return JSON.parse(response.text) as AIResponse;
+
+        let fullText = "";
+        for await (const chunk of stream) {
+            const part = (chunk as GenerateContentResponse).text;
+            if (part) {
+                fullText += part;
+                if (onStream) onStream(fullText);
+            }
+        }
+        
+        return JSON.parse(fullText) as AIResponse;
     } catch (error: any) {
         console.error("Gemini API Error:", error);
         throw error;

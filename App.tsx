@@ -4,7 +4,7 @@ import {
   Sparkles, Brain, Edit3, Loader2, RefreshCw, Download, 
   ArrowRight, ChevronRight,
   Compass, BookOpen, Rocket, Target, CheckCircle2,
-  HeartPulse, Users, Wallet, Microscope
+  HeartPulse, Users, Wallet, Microscope, ShieldCheck, Search
 } from 'lucide-react';
 import { calculateChart } from './MetaphysicsEngine';
 import { callGeminiAPI } from './geminiService'; 
@@ -25,6 +25,14 @@ const INITIAL_MESSAGES: Message[] = [{
     content: '尊貴的諮詢者，我是您的 AI 戰略顧問。我已為您排定命盤。您可以從下方的熱門主題中選擇，或直接在對話框輸入您的需求。', 
     isGreeting: true 
 }];
+
+const THINKING_STEPS = [
+    { label: "啟動戰略引擎", icon: <Rocket size={18}/>, color: "text-indigo-400" },
+    { label: "解析 2026 丙午年流年四化軌跡", icon: <Sparkles size={18}/>, color: "text-amber-400" },
+    { label: "深度對齊命宮與十二宮位星曜配置", icon: <Compass size={18}/>, color: "text-blue-400" },
+    { label: "檢索 Google Search 全球政經與能量趨勢", icon: <Search size={18}/>, color: "text-emerald-400" },
+    { label: "構建客製化人生戰略轉化方案", icon: <ShieldCheck size={18}/>, color: "text-rose-400" }
+];
 
 // --- [Component] 專業級直式 PDF 報告模板 ---
 const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[], chart: ChartData, id: string }) => {
@@ -129,7 +137,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                                 {m.data?.actionable_advice.map((adv, aIdx) => (
                                     <div key={aIdx} className="flex gap-6 p-6 bg-indigo-50/40 border border-indigo-100 rounded-3xl items-start" style={{ pageBreakInside: 'avoid' }}>
                                         <span className="font-black text-indigo-600 text-[13px] shrink-0 pt-1">[{adv.type}]</span>
-                                        <p className="text-[15px] text-slate-700 font-medium leading-relaxed">{adv.content}</p>
+                                        <p className="text-[15px] text-slate-700 font-medium導致的 leading-relaxed">{adv.content}</p>
                                     </div>
                                 ))}
                             </div>
@@ -154,6 +162,8 @@ export const App = () => {
     const [chart, setChart] = useState<ChartData | null>(null);
     const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
     const [isLoading, setIsLoading] = useState(false);
+    const [thinkingStep, setThinkingStep] = useState(0);
+    const [streamingTitle, setStreamingTitle] = useState("");
     const [input, setInput] = useState('');
     const [isReportMode, setIsReportMode] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
@@ -161,7 +171,19 @@ export const App = () => {
 
     useEffect(() => { if (!isReportMode) endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isLoading, isReportMode]);
 
-    // 清空所有資料，回到初始狀態
+    // 儀式感加載文字輪播
+    useEffect(() => {
+        let interval: any;
+        if (isLoading) {
+            interval = setInterval(() => {
+                setThinkingStep(s => (s + 1) % THINKING_STEPS.length);
+            }, 3000);
+        } else {
+            setThinkingStep(0);
+        }
+        return () => clearInterval(interval);
+    }, [isLoading]);
+
     const handleReset = () => {
         setChart(null);
         setMessages(INITIAL_MESSAGES);
@@ -176,9 +198,19 @@ export const App = () => {
         setIsReportMode(false);
         setMessages(p => [...p, { type: 'user', content: queryText }]);
         setIsLoading(true);
+        setStreamingTitle("");
         setInput('');
+
         try {
-            const data = await callGeminiAPI(chart, queryText, messages);
+            const data = await callGeminiAPI(chart, queryText, messages, (fullText) => {
+                // 部分解析流式顯示標題 (方案 2)
+                try {
+                    const match = fullText.match(/"title":\s*"([^"]+)"/);
+                    if (match && match[1]) {
+                        setStreamingTitle(match[1]);
+                    }
+                } catch (e) { /* Ignore partial parse errors */ }
+            });
             setMessages(p => [...p, { type: 'ai', data, question: queryText }]);
         } catch (err: any) {
             setMessages(p => [...p, { type: 'error', content: "分析連結中斷，請稍後再試。" }]);
@@ -313,7 +345,39 @@ export const App = () => {
                                     ) : null}
                                 </div>
                             ))}
-                            {isLoading && <div className="flex items-center gap-6 p-10 animate-pulse"><div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center"><Loader2 className="animate-spin text-white" size={24}/></div><div className="h-4 w-64 bg-white/10 rounded-full"></div></div>}
+                            {isLoading && (
+                                <div className="flex flex-col gap-6 animate-fade-in">
+                                    <div className="bg-slate-900/60 backdrop-blur-3xl p-10 md:p-14 rounded-[3.5rem] border border-white/5 shadow-2xl space-y-8">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg animate-pulse">
+                                                <Loader2 className="animate-spin text-white" size={28}/>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <p className={`text-xl font-serif font-black italic tracking-tight transition-all duration-500 ${THINKING_STEPS[thinkingStep].color}`}>
+                                                    {THINKING_STEPS[thinkingStep].label}...
+                                                </p>
+                                                <div className="flex items-center gap-2 text-slate-500 text-xs font-black uppercase tracking-widest">
+                                                    {THINKING_STEPS[thinkingStep].icon} 戰略顧問思考軌跡
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* 部分解析標題展示 (方案 2) */}
+                                        {streamingTitle && (
+                                            <div className="pt-6 border-t border-white/5 animate-fade-in">
+                                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">正在構建標題 (Probing Output)...</p>
+                                                <h3 className="text-2xl font-serif font-black text-indigo-400 italic">「{streamingTitle}」</h3>
+                                            </div>
+                                        )}
+
+                                        <div className="grid grid-cols-5 gap-2 pt-4">
+                                            {THINKING_STEPS.map((_, i) => (
+                                                <div key={i} className={`h-1 rounded-full transition-all duration-700 ${i === thinkingStep ? 'bg-indigo-500 w-full' : 'bg-white/10 w-full opacity-30'}`}></div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             <div ref={endRef} />
                         </div>
                     </>
