@@ -1,14 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Send, Sparkles, Moon, Brain, Edit3, Loader2, RefreshCw, Download, 
-  TrendingUp, Globe, ArrowRight, FileText, ChevronRight,
-  Compass, Sun, BookOpen, Layers, Quote, Activity, History, ShieldAlert,
-  Zap, Database, Target, Layout, MessageSquare, ExternalLink, CheckCircle2,
-  Lightbulb, Rocket, HeartPulse, Users, Wallet, Printer, Microscope
+  Sparkles, Brain, Edit3, Loader2, RefreshCw, Download, 
+  ArrowRight, ChevronRight,
+  Compass, BookOpen, Rocket, Target, CheckCircle2,
+  HeartPulse, Users, Wallet, Microscope
 } from 'lucide-react';
 import { calculateChart } from './MetaphysicsEngine';
-import { callGeminiAPI } from './services/geminiService'; 
+import { callGeminiAPI } from './geminiService'; 
 import { ChartData, Message, FormData as AppFormData, AIResponse } from './types';
 
 declare const html2pdf: any;
@@ -21,124 +20,110 @@ const GUIDANCE_QUESTIONS = [
     { label: "健康提醒", icon: <HeartPulse size={20}/>, query: "分析我 2026 年的疾厄宮狀況，針對潛在的健康風險、身心平衡與生活節奏調整給予建議。" }
 ];
 
-// --- [Component] 專業級 PDF 報告模板 (完整呈現版) ---
+// --- [Component] 專業級直式 PDF 報告模板 ---
 const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[], chart: ChartData, id: string }) => {
     const reportData = messages.filter(m => m.data);
 
     return (
-        <div id={id} className="bg-white text-slate-900 font-serif" style={{ width: '210mm', padding: '0', margin: '0' }}>
-            {/* 封面頁 - 強制分頁 */}
-            <div className="flex flex-col items-center justify-center text-center p-20" style={{ height: '297mm', pageBreakAfter: 'always' }}>
-                <div className="w-full max-w-2xl border-y-2 border-indigo-600 py-16">
-                    <div className="inline-block px-4 py-1 bg-indigo-600/10 rounded-full text-indigo-600 text-[12px] font-black tracking-[0.5em] mb-10 uppercase">
+        <div id={id} className="bg-white text-slate-900" style={{ width: '794px', minHeight: '1123px', padding: '0', margin: '0', boxSizing: 'border-box', fontFamily: 'serif', display: 'block', overflow: 'hidden' }}>
+            
+            {/* 封面頁 */}
+            <div className="flex flex-col items-center justify-center text-center relative" style={{ height: '1120px', width: '794px', pageBreakAfter: 'always', backgroundColor: '#ffffff', padding: '0 80px', boxSizing: 'border-box' }}>
+                <div className="w-full border-t-4 border-b-4 border-indigo-600 py-24 relative">
+                    <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-white px-8 py-1 text-indigo-600 text-[14px] font-black tracking-[0.5em] uppercase border-2 border-indigo-600 rounded-full whitespace-nowrap">
                         Strategic Destiny Analysis
                     </div>
-                    <h1 className="text-7xl font-serif-heavy italic text-slate-900 leading-tight mb-12">
-                        人生戰略<br/>諮詢報告
+                    
+                    <h1 className="text-8xl font-black italic text-slate-900 leading-none mb-16 tracking-tighter w-full">
+                        人生戰略<br/><span className="text-7xl">諮詢報告</span>
                     </h1>
-                    <div className="grid grid-cols-2 gap-12 max-w-lg mx-auto mb-16">
-                        <div className="text-left border-l-4 border-slate-100 pl-6">
-                            <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">諮詢對象</p>
-                            <p className="text-2xl font-bold">{chart.profile.name}</p>
+
+                    <div className="mt-20 border-t border-slate-100 pt-16 space-y-12 w-full">
+                        <div className="grid grid-cols-2 gap-12 w-full">
+                            <div className="text-left border-l-4 border-indigo-600 pl-8">
+                                <p className="text-[11px] text-slate-400 uppercase font-black tracking-widest mb-2">諮詢對象 / Client</p>
+                                <p className="text-3xl font-bold text-slate-800">{chart.profile.name}</p>
+                            </div>
+                            <div className="text-left border-l-4 border-slate-200 pl-8">
+                                <p className="text-[11px] text-slate-400 uppercase font-black tracking-widest mb-2">命盤格局 / Format</p>
+                                <p className="text-3xl font-bold text-slate-800">{chart.ziwei.animal} / {chart.ziwei.fiveElements}局</p>
+                            </div>
                         </div>
-                        <div className="text-left border-l-4 border-slate-100 pl-6">
-                            <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2">生肖格局</p>
-                            <p className="text-2xl font-bold">{chart.ziwei.animal} / {chart.ziwei.fiveElements}局</p>
+                        
+                        <div className="pt-10 flex justify-center items-center gap-6 text-slate-400">
+                            <div className="h-px w-16 bg-slate-200"></div>
+                            <span className="text-sm italic font-serif tracking-widest">ISSUED ON: {new Date().toLocaleDateString()}</span>
+                            <div className="h-px w-16 bg-slate-200"></div>
                         </div>
                     </div>
-                    <div className="flex justify-center items-center gap-4 text-slate-400 text-sm italic">
-                        <div className="h-[1px] w-12 bg-slate-200"></div>
-                        <span>生成日期：{new Date().toLocaleDateString()}</span>
-                        <div className="h-[1px] w-12 bg-slate-200"></div>
-                    </div>
+                </div>
+                <div className="absolute bottom-24 left-0 right-0 text-center">
+                    <p className="text-[11px] text-slate-300 font-mono tracking-[0.8em] uppercase">Intelligence by Gemini AI System</p>
                 </div>
             </div>
 
-            {/* 內容頁面 */}
-            <div className="p-16 space-y-20">
+            {/* 內容區域 */}
+            <div className="p-20 space-y-24" style={{ width: '794px', boxSizing: 'border-box' }}>
                 {reportData.map((m, idx) => (
-                    <div key={idx} className="space-y-12 pb-20 border-b border-slate-100 last:border-0" style={{ pageBreakInside: 'avoid' }}>
-                        {/* 章節標題 */}
-                        <div className="flex items-center gap-6">
-                            <span className="text-7xl font-black text-slate-100 font-sans">{idx + 1}</span>
-                            <div className="space-y-1">
-                                <p className="text-xs font-black text-indigo-600 tracking-[0.3em] uppercase">Strategic Case Study</p>
-                                <h2 className="text-3xl font-bold text-slate-800">{m.question}</h2>
+                    <div key={idx} className="border-b border-slate-100 pb-20 last:border-0">
+                        <div className="flex items-center gap-8 mb-12" style={{ pageBreakInside: 'avoid' }}>
+                            <span className="text-9xl font-black text-slate-100 leading-none" style={{ fontFamily: 'sans-serif' }}>{idx + 1}</span>
+                            <div className="pt-6">
+                                <p className="text-[12px] font-black text-indigo-600 tracking-[0.4em] uppercase mb-2">STRATEGIC ANALYSIS CASE</p>
+                                <h2 className="text-4xl font-bold text-slate-800 leading-tight">{m.question}</h2>
                             </div>
                         </div>
 
-                        {/* 核心摘要 */}
-                        <div className="space-y-6">
-                            <h3 className="text-4xl font-serif-heavy italic leading-snug text-slate-900 border-l-8 border-indigo-600 pl-8">
-                                {m.data?.executive_summary.title}
-                            </h3>
-                            <div className="flex gap-3">
-                                <span className="bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest">
-                                    方向：{m.data?.executive_summary.direction}
-                                </span>
+                        <div className="space-y-10">
+                            <div style={{ pageBreakInside: 'avoid' }}>
+                                <h3 className="text-5xl font-black italic text-slate-900 border-l-8 border-indigo-600 pl-10 leading-tight mb-8">
+                                    {m.data?.executive_summary.title}
+                                </h3>
+                                <div className="flex items-center gap-6 mb-8">
+                                    <span className="bg-indigo-600 text-white text-[11px] font-black px-6 py-2 rounded-full uppercase tracking-[0.2em] shadow-lg">
+                                        核心方針：{m.data?.executive_summary.direction}
+                                    </span>
+                                </div>
                             </div>
-                            <p className="text-xl text-slate-700 leading-relaxed text-justify whitespace-pre-wrap break-words">
+                            
+                            <p className="text-xl text-slate-700 leading-[1.8] text-justify whitespace-pre-wrap font-serif italic" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                                 {m.data?.executive_summary.description}
                             </p>
                         </div>
 
-                        {/* 命理深度剖析 */}
-                        <div className="bg-slate-50 p-10 rounded-[2rem] border border-slate-200 space-y-4">
-                            <h4 className="text-lg font-black text-slate-900 flex items-center gap-3">
-                                <Compass size={20} className="text-indigo-600"/> {m.data?.metaphysical_perspective.title}
-                            </h4>
-                            <p className="text-slate-600 leading-relaxed whitespace-pre-wrap break-words">
-                                {m.data?.metaphysical_perspective.content}
-                            </p>
-                        </div>
-
-                        {/* 戰略建議方案卡片 */}
-                        <div className="space-y-6">
-                            <h4 className="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-3">
-                                <Rocket size={18}/> 戰略執行路徑 (Strategic Roadmaps)
-                            </h4>
-                            <div className="grid grid-cols-1 gap-6">
-                                {m.data?.strategic_solutions.map((sol, sIdx) => (
-                                    <div key={sIdx} className="bg-white p-8 rounded-3xl border-2 border-slate-100 shadow-sm">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <h5 className="text-xl font-bold text-slate-900">{sol.title}</h5>
-                                            <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${sol.priority === 'High' ? 'bg-red-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
-                                                {sol.priority}
-                                            </span>
+                        {m.data?.strategic_solutions && (
+                            <div className="mt-16 space-y-8">
+                                <h4 className="text-[12px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-3 mb-6">
+                                    <Rocket size={20}/> 戰略執行核心方案
+                                </h4>
+                                <div className="grid grid-cols-1 gap-8">
+                                    {m.data.strategic_solutions.map((sol, sIdx) => (
+                                        <div key={sIdx} className="bg-slate-50 p-10 rounded-[2.5rem] border border-slate-200 shadow-sm" style={{ pageBreakInside: 'avoid' }}>
+                                            <div className="flex justify-between items-start mb-6">
+                                                <h5 className="text-2xl font-bold text-slate-900">{sol.title}</h5>
+                                                <span className={`px-6 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest ${sol.priority === 'High' ? 'bg-red-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
+                                                    {sol.priority}
+                                                </span>
+                                            </div>
+                                            <p className="text-slate-600 mb-8 leading-relaxed text-lg">{sol.description}</p>
+                                            <div className="flex items-center gap-3 pt-6 border-t border-slate-200 text-emerald-600 font-bold text-[13px] uppercase tracking-widest">
+                                                <Target size={18}/> 能量轉換預測：{sol.impact}
+                                            </div>
                                         </div>
-                                        <p className="text-slate-600 text-sm mb-6 leading-relaxed whitespace-pre-wrap">{sol.description}</p>
-                                        <div className="flex items-center gap-3 py-3 border-t border-slate-50 text-emerald-600 font-bold text-xs uppercase tracking-wider">
-                                            <Target size={16}/> 預期轉換能量：{sol.impact}
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
-                        {/* 科學與心理學解碼 */}
-                        <div className="grid grid-cols-2 gap-8">
-                            <div className="p-8 border border-slate-100 rounded-3xl">
-                                <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                    <Brain size={14}/> 心理學解碼
-                                </h5>
-                                <p className="text-sm text-slate-600 leading-relaxed">{m.data?.scientific_decoding.psychology}</p>
-                            </div>
-                            <div className="p-8 border border-slate-100 rounded-3xl">
-                                <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                    <Microscope size={14}/> 環境機率分析
-                                </h5>
-                                <p className="text-sm text-slate-600 leading-relaxed">{m.data?.scientific_decoding.physics}</p>
-                            </div>
-                        </div>
-
-                        {/* 具體行動清單 */}
-                        <div className="space-y-4">
-                            <h4 className="text-xs font-black text-indigo-600 uppercase tracking-widest">行動指南 (Action Items)</h4>
-                            <div className="space-y-2">
+                        <div className="mt-16 space-y-6">
+                            <h4 className="text-[12px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-3 mb-6">
+                                <CheckCircle2 size={20}/> 具體執行清單 (Action Items)
+                            </h4>
+                            <div className="space-y-4">
                                 {m.data?.actionable_advice.map((adv, aIdx) => (
-                                    <div key={aIdx} className="flex gap-4 items-start p-4 bg-slate-50 rounded-xl">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 mt-2 flex-shrink-0"></span>
-                                        <p className="text-sm text-slate-700"><strong>[{adv.type}]</strong> {adv.content}</p>
+                                    <div key={aIdx} className="flex gap-6 p-6 bg-indigo-50/40 border border-indigo-100 rounded-3xl items-start" style={{ pageBreakInside: 'avoid' }}>
+                                        <span className="font-black text-indigo-600 text-[13px] shrink-0 pt-1">[{adv.type}]</span>
+                                        <p className="text-[15px] text-slate-700 font-medium leading-relaxed">{adv.content}</p>
                                     </div>
                                 ))}
                             </div>
@@ -147,13 +132,12 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                 ))}
             </div>
 
-            {/* 頁尾 */}
-            <div className="p-20 text-center border-t border-slate-100">
-                <p className="text-slate-300 font-mono text-[10px] uppercase tracking-[0.8em] mb-4">
+            <div className="p-24 text-center border-t border-slate-100" style={{ width: '794px', pageBreakBefore: 'auto' }}>
+                <p className="text-slate-300 font-mono text-[12px] uppercase tracking-[1em] mb-6">
                     End of Analysis Report
                 </p>
-                <p className="text-slate-400 text-xs italic">
-                    本報告由 AI 戰略引擎生成，僅供個人決策參考。
+                <p className="text-slate-400 text-sm italic font-serif leading-relaxed px-20">
+                    本報告由東西命理科學顧問 AI 戰略引擎生成。分析結論基於紫微斗數大數據與時間能量概率預測，僅供個人決策與戰略佈局參考。
                 </p>
             </div>
         </div>
@@ -196,31 +180,33 @@ export const App = () => {
         if (!element || !chart) return;
 
         setIsExporting(true);
-        
-        // 增加一個渲染延遲，確保 React 完成 DOM 繪製
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         const opt = {
             margin: 0,
-            filename: `戰略命理報告_${chart.profile.name}_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
+            filename: `戰略命理報告_${chart.profile.name}.pdf`,
+            image: { type: 'jpeg', quality: 1.0 },
             html2canvas: { 
                 scale: 2, 
                 useCORS: true, 
                 letterRendering: true,
                 logging: false,
+                scrollY: 0,
                 scrollX: 0,
-                scrollY: 0
+                x: 0,
+                y: 0,
+                width: 794,
+                windowWidth: 794
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            pagebreak: { mode: ['css', 'legacy'] }
         };
 
         try {
             await html2pdf().from(element).set(opt).save();
         } catch (error) {
             console.error('PDF Export Failed:', error);
-            alert("匯出 PDF 時發生錯誤，請檢查瀏覽器權限或重試。");
+            alert("匯出 PDF 時發生錯誤。");
         } finally {
             setIsExporting(false);
         }
@@ -237,7 +223,7 @@ export const App = () => {
                         <div className="w-10 h-10 bg-slate-900 border border-white/10 rounded-xl flex items-center justify-center shadow-lg">
                             <BookOpen className="text-indigo-400" size={20}/>
                         </div>
-                        <h1 className="text-xl font-serif-heavy text-white tracking-tighter hidden md:block italic">東西命理科學顧問</h1>
+                        <h1 className="text-xl font-serif font-black text-white tracking-tighter hidden md:block italic">東西命理科學顧問</h1>
                     </div>
                     
                     <div className="flex gap-4">
@@ -248,13 +234,9 @@ export const App = () => {
                             </div>
                         )}
                         {messages.some(m => m.data) && (
-                            <button 
-                                onClick={handleExportPDF} 
-                                disabled={isExporting}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-indigo-500 active:scale-95 transition-all shadow-xl disabled:opacity-50"
-                            >
+                            <button onClick={handleExportPDF} disabled={isExporting} className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-indigo-500 active:scale-95 transition-all shadow-xl disabled:opacity-50">
                                 {isExporting ? <Loader2 className="animate-spin" size={14}/> : <Download size={14}/>}
-                                {isExporting ? '生成中...' : '下載完整 PDF'}
+                                {isExporting ? '生成中...' : '下載報告'}
                             </button>
                         )}
                         <button onClick={() => setChart(null)} className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-full border border-white/10 transition-all"><RefreshCw size={18}/></button>
@@ -280,22 +262,15 @@ export const App = () => {
                                 <div key={i} className="animate-fade-in">
                                     {m.type === 'user' ? (
                                         <div className="flex justify-end">
-                                            <div className="bg-white/5 backdrop-blur-md text-white px-8 py-5 rounded-[2rem] rounded-tr-none border border-white/10 max-w-[80%] text-xl font-bold leading-relaxed shadow-xl">
-                                                {m.content}
-                                            </div>
+                                            <div className="bg-white/5 backdrop-blur-md text-white px-8 py-5 rounded-[2rem] rounded-tr-none border border-white/10 max-w-[80%] text-xl font-bold leading-relaxed shadow-xl">{m.content}</div>
                                         </div>
                                     ) : m.isGreeting ? (
-                                        <div className="bg-slate-900/40 p-10 rounded-[2.5rem] border border-white/5 italic text-slate-400 text-lg font-serif-heavy leading-relaxed shadow-inner">
-                                            {m.content}
-                                        </div>
+                                        <div className="bg-slate-900/40 p-10 rounded-[2.5rem] border border-white/5 italic text-slate-400 text-lg font-serif font-black leading-relaxed shadow-inner">{m.content}</div>
                                     ) : m.data ? (
                                         <div className="bg-slate-900/60 backdrop-blur-3xl p-8 md:p-14 rounded-[3.5rem] border border-indigo-500/20 shadow-2xl relative overflow-hidden group">
                                             <div className="relative z-10 space-y-10">
                                                 <div className="space-y-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="h-10 w-2 bg-indigo-600 rounded-full"></span>
-                                                        <h2 className="text-4xl md:text-5xl font-serif-heavy text-white italic tracking-tight">{m.data.executive_summary.title}</h2>
-                                                    </div>
+                                                    <div className="flex items-center gap-3"><span className="h-10 w-2 bg-indigo-600 rounded-full"></span><h2 className="text-4xl md:text-5xl font-serif font-black text-white italic tracking-tight">{m.data.executive_summary.title}</h2></div>
                                                 </div>
                                                 <div className="space-y-8 text-slate-300 text-xl leading-relaxed font-serif text-justify border-l border-white/5 pl-8 ml-2 italic">
                                                     <div className="flex flex-wrap gap-4 mb-6">
@@ -304,20 +279,15 @@ export const App = () => {
                                                     </div>
                                                     {m.data.executive_summary.description}
                                                 </div>
-                                                
                                                 {m.data.strategic_solutions && (
                                                     <div className="space-y-6">
-                                                        <h3 className="text-lg font-black text-amber-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                                                            <Rocket size={18}/> 戰略建議方案
-                                                        </h3>
+                                                        <h3 className="text-lg font-black text-amber-400 uppercase tracking-[0.2em] flex items-center gap-2"><Rocket size={18}/> 戰略建議方案</h3>
                                                         <div className="grid grid-cols-1 gap-4">
                                                             {m.data.strategic_solutions.map((sol, idx) => (
                                                                 <div key={idx} className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-all">
                                                                     <div className="flex justify-between items-center mb-2">
                                                                         <h4 className="text-white font-bold text-lg">{sol.title}</h4>
-                                                                        <span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${sol.priority === 'High' ? 'bg-red-500/20 text-red-400' : 'bg-indigo-500/10 text-indigo-400'}`}>
-                                                                            {sol.priority}
-                                                                        </span>
+                                                                        <span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${sol.priority === 'High' ? 'bg-red-500/20 text-red-400' : 'bg-indigo-500/10 text-indigo-400'}`}>{sol.priority}</span>
                                                                     </div>
                                                                     <p className="text-slate-400 text-sm leading-relaxed mb-3">{sol.description}</p>
                                                                     <p className="text-emerald-400 text-xs font-bold flex items-center gap-2"><CheckCircle2 size={14}/> 核心影響：{sol.impact}</p>
@@ -331,24 +301,14 @@ export const App = () => {
                                     ) : null}
                                 </div>
                             ))}
-                            {isLoading && (
-                                <div className="flex items-center gap-6 p-10 animate-pulse">
-                                    <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center">
-                                        <Loader2 className="animate-spin text-white" size={24}/>
-                                    </div>
-                                    <div className="h-4 w-64 bg-white/10 rounded-full"></div>
-                                </div>
-                            )}
+                            {isLoading && <div className="flex items-center gap-6 p-10 animate-pulse"><div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center"><Loader2 className="animate-spin text-white" size={24}/></div><div className="h-4 w-64 bg-white/10 rounded-full"></div></div>}
                             <div ref={endRef} />
                         </div>
                     </>
                 ) : (
                     <div className="w-full flex flex-col items-center gap-10 py-10 bg-white/5 rounded-[4rem]">
-                        <div className="text-center space-y-2">
-                            <h2 className="text-2xl font-serif-heavy italic">報告預覽區</h2>
-                            <p className="text-slate-400 text-sm">此預覽僅顯示排版，建議下載 PDF 檔案以獲取最佳閱讀體驗。</p>
-                        </div>
-                        <div className="shadow-[0_0_100px_rgba(0,0,0,0.5)] transform scale-[0.85] md:scale-100 origin-top">
+                        <div className="text-center space-y-2"><h2 className="text-2xl font-serif font-black italic text-white">報告預覽區</h2><p className="text-slate-400 text-xs">下載 PDF 以獲取最佳報章級閱讀體驗。</p></div>
+                        <div className="shadow-2xl transform scale-[0.6] md:scale-90 origin-top bg-white border border-slate-200">
                             <ProfessionalPDFTemplate id="report-preview-view" messages={messages} chart={chart} />
                         </div>
                     </div>
@@ -366,9 +326,11 @@ export const App = () => {
                 </div>
             )}
 
-            {/* 修改隱藏策略：放置在 DOM 中但遠離可視區域，確保能正確渲染 */}
-            <div className="fixed" style={{ top: '-10000px', left: '-10000px' }}>
-                {chart && <ProfessionalPDFTemplate id="report-pdf-export-source" messages={messages} chart={chart} />}
+            {/* 隱藏渲染區域 */}
+            <div className="fixed" style={{ top: '0', left: '0', zIndex: -1000, visibility: 'hidden', pointerEvents: 'none' }}>
+                <div style={{ width: '794px', backgroundColor: '#ffffff' }}>
+                    {chart && <ProfessionalPDFTemplate id="report-pdf-export-source" messages={messages} chart={chart} />}
+                </div>
             </div>
         </div>
     );
@@ -381,7 +343,7 @@ const InputForm = ({ onStart }: { onStart: (data: AppFormData) => void }) => {
             <div className="w-full max-w-2xl bg-slate-900/50 backdrop-blur-3xl p-12 md:p-20 rounded-[4rem] border border-white/10 shadow-[0_0_80px_rgba(79,70,229,0.1)] animate-fade-in">
                 <div className="flex flex-col items-center mb-16 text-center">
                     <div className="w-20 h-20 bg-indigo-600 rounded-[2rem] flex items-center justify-center shadow-2xl mb-8 rotate-3"><Sparkles className="text-white" size={40} /></div>
-                    <h1 className="text-5xl font-serif-heavy text-white mb-4 italic tracking-tight">東西命理科學顧問</h1>
+                    <h1 className="text-5xl font-serif font-black text-white mb-4 italic tracking-tight">東西命理科學顧問</h1>
                     <p className="text-slate-500 font-black text-[10px] uppercase tracking-[0.5em] opacity-80 italic">A.I. STRATEGY ENGINE</p>
                 </div>
                 <form onSubmit={(e) => { e.preventDefault(); onStart(formData); }} className="space-y-10">
@@ -392,11 +354,11 @@ const InputForm = ({ onStart }: { onStart: (data: AppFormData) => void }) => {
                     <div className="grid grid-cols-2 gap-8">
                         <div className="space-y-3">
                             <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">出生日期</label>
-                            <input required type="date" value={formData.birthDate} onChange={e => setFormData({ ...formData, birthDate: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-lg transition-all [color-scheme:dark]" />
+                            <input required type="date" value={formData.birthDate} onChange={e => setFormData({ ...formData, birthDate: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-lg transition-all" style={{colorScheme: 'dark'}} />
                         </div>
                         <div className="space-y-3">
                             <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">出生時辰</label>
-                            <input required type="time" value={formData.birthTime} onChange={e => setFormData({ ...formData, birthTime: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-lg transition-all [color-scheme:dark]" />
+                            <input required type="time" value={formData.birthTime} onChange={e => setFormData({ ...formData, birthTime: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-lg transition-all" style={{colorScheme: 'dark'}} />
                         </div>
                     </div>
                     <div className="flex gap-4">
@@ -430,7 +392,7 @@ const ZiweiChart = ({ chart, onEdit }: { chart: ChartData, onEdit: () => void })
             ))}
             <div className="col-start-2 col-end-4 row-start-2 row-end-4 flex flex-col items-center justify-center text-center p-10 bg-slate-900/90 rounded-[3rem] border border-white/10 z-20 shadow-2xl">
                 <div className="w-20 h-20 rounded-[2.5rem] bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center border border-white/20 shadow-2xl mb-8 rotate-3"><Compass className="text-white" size={40} /></div>
-                <h2 className="text-3xl md:text-5xl font-serif-heavy text-white mb-3 italic tracking-tighter">{chart.profile.name}</h2>
+                <h2 className="text-3xl md:text-5xl font-serif font-black text-white mb-3 italic tracking-tighter">{chart.profile.name}</h2>
                 <div className="flex gap-3 mb-8">
                     <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-4 py-1 rounded-full font-black uppercase tracking-widest border border-indigo-500/30">{chart.ziwei.animal}年</span>
                     <span className="text-[10px] bg-amber-500/20 text-amber-300 px-4 py-1 rounded-full font-black uppercase tracking-widest border border-indigo-500/30">{chart.western.zodiac}</span>
