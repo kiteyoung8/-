@@ -5,10 +5,10 @@ import {
   ArrowRight, ChevronRight,
   Compass, BookOpen, Rocket, Target, CheckCircle2,
   HeartPulse, Users, Wallet, ShieldCheck, Search,
-  AlertCircle, MessageSquarePlus, Zap, Microscope
+  AlertCircle, MessageSquarePlus, Zap
 } from 'lucide-react';
 import { calculateChart } from './MetaphysicsEngine';
-import { callGeminiAPI } from './services/geminiService'; 
+import { callGeminiAPI } from './geminiService'; 
 import { ChartData, Message, FormData as AppFormData, AIResponse } from './types';
 
 declare const html2pdf: any;
@@ -30,8 +30,8 @@ const INITIAL_MESSAGES: Message[] = [{
 const THINKING_STEPS = [
     { label: "啟動戰略引擎", icon: <Rocket size={18}/>, color: "text-indigo-400" },
     { label: "解析 2026 丙午年流年四化軌跡", icon: <Sparkles size={18}/>, color: "text-amber-400" },
-    { label: "對齊命盤宮位配置", icon: <Compass size={18}/>, color: "text-blue-400" },
-    { label: "啟動 Pro 思考模組進行深度推理", icon: <Brain size={18}/>, color: "text-purple-400" },
+    { label: "深度對齊命盤宮位星曜配置", icon: <Compass size={18}/>, color: "text-blue-400" },
+    { label: "啟動思考模組進行多維推理", icon: <Brain size={18}/>, color: "text-purple-400" },
     { label: "構建客製化戰略方案", icon: <ShieldCheck size={18}/>, color: "text-rose-400" }
 ];
 
@@ -39,7 +39,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
     const reportData = messages.filter(m => m.data);
 
     return (
-        <div id={id} className="bg-white text-slate-900" style={{ width: '794px', margin: '0', padding: '0', boxSizing: 'border-box', fontFamily: 'serif', overflow: 'hidden' }}>
+        <div id={id} className="bg-white text-slate-900" style={{ width: '794px', margin: '0', padding: '0', boxSizing: 'border-box', fontFamily: 'serif' }}>
             {/* 第 1 頁：封面 (強制獨立分頁) */}
             <div className="pdf-page-cover flex flex-col items-center justify-center text-center relative" style={{ height: '1120px', width: '794px', pageBreakAfter: 'always', backgroundColor: '#ffffff', padding: '0 80px', boxSizing: 'border-box' }}>
                 <div className="w-full border-t-4 border-b-4 border-indigo-600 py-24 relative flex flex-col items-center">
@@ -72,10 +72,10 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                 </div>
             </div>
 
-            {/* 第 2 頁開始：內容區域 (使用 break-inside: avoid 確保不被攔腰切斷) */}
-            <div className="p-16 space-y-20" style={{ width: '794px', boxSizing: 'border-box', backgroundColor: '#ffffff' }}>
+            {/* 第 2 頁開始：內容區域 (確保區塊不被切斷) */}
+            <div className="p-16 space-y-16" style={{ width: '794px', boxSizing: 'border-box' }}>
                 {reportData.map((m, idx) => (
-                    <div key={idx} className="analysis-case-container border-b border-slate-100 pb-20 last:border-0" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', display: 'block' }}>
+                    <div key={idx} className="analysis-case-container border-b border-slate-100 pb-16 last:border-0" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                         <div className="flex items-center gap-6 mb-10">
                             <span className="text-8xl font-black text-slate-100 leading-none" style={{ fontFamily: 'sans-serif' }}>{idx + 1}</span>
                             <div className="pt-4">
@@ -95,7 +95,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                                     </span>
                                 </div>
                             </div>
-                            <p className="text-lg text-slate-700 leading-[1.8] text-justify whitespace-pre-wrap font-serif italic border-l border-slate-100 pl-8">
+                            <p className="text-lg text-slate-700 leading-[1.7] text-justify whitespace-pre-wrap font-serif italic border-l border-slate-100 pl-8">
                                 {m.data?.executive_summary.description}
                             </p>
                         </div>
@@ -107,7 +107,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                                 </h4>
                                 <div className="grid grid-cols-1 gap-6">
                                     {m.data.strategic_solutions.map((sol, sIdx) => (
-                                        <div key={sIdx} className="bg-slate-50 p-8 rounded-[2rem] border border-slate-200 shadow-sm" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', display: 'block' }}>
+                                        <div key={sIdx} className="bg-slate-50 p-8 rounded-[2rem] border border-slate-200 shadow-sm" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                             <div className="flex justify-between items-start mb-4">
                                                 <h5 className="text-xl font-bold text-slate-900">{sol.title}</h5>
                                                 <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${sol.priority === 'High' ? 'bg-red-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
@@ -124,7 +124,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                             </div>
                         )}
 
-                        <div className="mt-12 space-y-4" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', display: 'block' }}>
+                        <div className="mt-12 space-y-4" style={{ pageBreakInside: 'avoid' }}>
                             <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-4">
                                 <CheckCircle2 size={16}/> 具體執行清單 (Action Items)
                             </h4>
@@ -142,7 +142,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
             </div>
 
             {/* 結尾 */}
-            <div className="p-16 text-center border-t border-slate-100" style={{ width: '794px', pageBreakInside: 'avoid', backgroundColor: '#ffffff' }}>
+            <div className="p-16 text-center border-t border-slate-100" style={{ width: '794px', pageBreakInside: 'avoid' }}>
                 <p className="text-slate-300 font-mono text-[10px] uppercase tracking-[1em] mb-4">
                     End of Analysis Report
                 </p>
@@ -215,7 +215,7 @@ export const App = () => {
             console.error("Query Error:", err);
             setMessages(p => [...p, { 
                 type: 'error', 
-                content: "網路波動或 AI 思考過久。請嘗試簡化提問後再次諮詢。",
+                content: "網路波動或 AI 思考過久。這通常是因為搜尋任務繁忙，請嘗試簡化提問後再次諮詢。",
                 question: queryText
             }]);
         } finally {
@@ -229,31 +229,22 @@ export const App = () => {
         if (!element || !chart) return;
 
         setIsExporting(true);
-        // 給予一點時間讓渲染完全就緒
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         const opt = {
             margin: 0,
             filename: `戰略命理報告_${chart.profile.name}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true, 
-                letterRendering: true,
-                scrollY: 0, // 強制從頂部開始截圖，解決空白頁問題
-                scrollX: 0
-            },
+            html2canvas: { scale: 2, useCORS: true, letterRendering: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { 
-                mode: ['css', 'legacy']
-            }
+            pagebreak: { mode: ['css', 'legacy'] }
         };
 
         try {
             await html2pdf().from(element).set(opt).save();
         } catch (error) {
             console.error('PDF Export Error:', error);
-            alert("匯出 PDF 時發生錯誤，請確認網路與權限。");
+            alert("匯出 PDF 時發生錯誤。");
         } finally {
             setIsExporting(false);
         }
@@ -363,47 +354,31 @@ export const App = () => {
                             ))}
 
                             {showFollowUps && (
-                                <div className="flex flex-col gap-8 animate-fade-in border-t border-white/5 pt-12">
+                                <div className="flex flex-col gap-6 animate-fade-in border-t border-white/5 pt-10">
                                     <div className="flex items-center gap-3 text-indigo-400">
                                         <MessageSquarePlus size={20}/>
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">深度白話解析選項 / Pro Analysis</span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">延伸建議諮詢 / Follow-up</span>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div className="flex flex-wrap gap-4">
                                         <button 
-                                            onClick={() => performQuery("是否深入解析？（請啟動 Pro 思考模組，以「極致白話」進行多維度邏輯推理與長期佈局解析）", true)}
-                                            className="p-8 bg-indigo-600/10 border-2 border-indigo-500/40 rounded-[2.5rem] text-indigo-100 flex flex-col items-start gap-4 hover:bg-indigo-600/20 transition-all group relative overflow-hidden shadow-[0_0_40px_rgba(79,70,229,0.1)]"
+                                            onClick={() => performQuery("請啟動思考模組，對剛才的解析進行深入多維度的推理與戰略建議", true)}
+                                            className="px-6 py-3 bg-purple-600/20 border border-purple-500/40 rounded-2xl text-purple-300 text-sm font-bold flex items-center gap-3 hover:bg-purple-600/30 transition-all group"
                                         >
-                                            <div className="absolute top-4 right-4 text-indigo-500/20 group-hover:text-indigo-500/40 transition-colors">
-                                                <Microscope size={56} />
-                                            </div>
-                                            <div className="flex items-center gap-3 font-black text-xl">
-                                                <Zap size={22} className="text-amber-400 fill-amber-400 animate-pulse" />
-                                                🔮 是否深度白話解析？
-                                            </div>
-                                            <p className="text-[14px] text-indigo-300/80 leading-relaxed text-left font-serif italic">
-                                                啟動 Pro 思考模組。我將完全摒棄術語，改用最直白的現代語言拆解能量，提供您看一眼就能立刻決策的行動指南。
-                                            </p>
-                                            <div className="flex items-center gap-2 text-[10px] font-black text-indigo-400 uppercase tracking-widest mt-2 border-t border-indigo-500/20 pt-4 w-full">
-                                                <Brain size={14}/> 深度解析模式 (白話導向)
-                                            </div>
+                                            <Zap size={16} className="group-hover:scale-125 transition-transform"/>
+                                            🔮 啟動思考模組：深入解析
                                         </button>
-
-                                        <div className="flex flex-col gap-4">
-                                            <button 
-                                                onClick={() => performQuery("請針對當前的戰略方針，列出未來三個月具體的行動時間表")}
-                                                className="px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold flex items-center justify-between hover:bg-indigo-600/20 hover:border-indigo-500/30 transition-all group"
-                                            >
-                                                <span>行動方案：未來三月日程</span>
-                                                <ArrowRight size={16} className="text-slate-500 group-hover:text-indigo-400 transform group-hover:translate-x-1 transition-all" />
-                                            </button>
-                                            <button 
-                                                onClick={() => performQuery("根據命盤配置，我該如何具體調整心態或行為來避開潛在風險？")}
-                                                className="px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold flex items-center justify-between hover:bg-indigo-600/20 hover:border-indigo-500/30 transition-all group"
-                                            >
-                                                <span>風險規避：具體避險指南</span>
-                                                <ArrowRight size={16} className="text-slate-500 group-hover:text-indigo-400 transform group-hover:translate-x-1 transition-all" />
-                                            </button>
-                                        </div>
+                                        <button 
+                                            onClick={() => performQuery("這份戰略對我接下來三個月的具體行動有何建議？")}
+                                            className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold hover:bg-white/10 transition-all"
+                                        >
+                                            執行細節：未來三月行動建議
+                                        </button>
+                                        <button 
+                                            onClick={() => performQuery("在執行此方案時，我應該特別注意哪些潛在的風險或障礙？")}
+                                            className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold hover:bg-white/10 transition-all"
+                                        >
+                                            風險規避：潛在障礙分析
+                                        </button>
                                     </div>
                                 </div>
                             )}
@@ -426,7 +401,7 @@ export const App = () => {
                                         </div>
                                         {streamingTitle && (
                                             <div className="pt-6 border-t border-white/5 animate-fade-in">
-                                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">核心戰略預覽 (Streaming)...</p>
+                                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">預覽戰略核心 (Partial Preview)...</p>
                                                 <h3 className="text-2xl font-serif font-black text-indigo-400 italic">「{streamingTitle}」</h3>
                                             </div>
                                         )}
@@ -445,7 +420,7 @@ export const App = () => {
                     <div className="w-full flex flex-col items-center gap-10 py-10 bg-white/5 rounded-[4rem]">
                         <div className="text-center space-y-2">
                             <h2 className="text-2xl font-serif font-black italic text-white">報告預覽區</h2>
-                            <p className="text-slate-400 text-xs">下載 PDF 以獲取最佳排版。封面將自動獨立，內容主題會保持完整，不會在中間被切斷。</p>
+                            <p className="text-slate-400 text-xs">下載 PDF 以獲取最佳閱讀體驗。封面將自動獨立分頁。</p>
                         </div>
                         <div className="shadow-2xl origin-top bg-white overflow-hidden rounded-xl border border-slate-200" style={{ transform: 'scale(0.8)', width: '794px' }}>
                             <ProfessionalPDFTemplate id="report-preview-view" messages={messages} chart={chart} />
@@ -465,7 +440,6 @@ export const App = () => {
                 </div>
             )}
 
-            {/* 用於 PDF 導出的隱藏內容容器 */}
             <div className="fixed" style={{ top: '-9999px', left: '-9999px', zIndex: -1000 }}>
                 <div style={{ width: '794px', backgroundColor: '#ffffff' }}>
                     {chart && <ProfessionalPDFTemplate id="report-pdf-export-source" messages={messages} chart={chart} />}
