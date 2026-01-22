@@ -31,7 +31,7 @@ const THINKING_STEPS = [
     { label: "啟動戰略引擎", icon: <Rocket size={18}/>, color: "text-indigo-400" },
     { label: "解析 2026 丙午年流年四化軌跡", icon: <Sparkles size={18}/>, color: "text-amber-400" },
     { label: "對齊命盤宮位配置", icon: <Compass size={18}/>, color: "text-blue-400" },
-    { label: "啟動 Pro 思考模組進行深度推理", icon: <Brain size={18}/>, color: "text-purple-400" },
+    { label: "啟動 Pro 思考模組進行深度白話推理", icon: <Brain size={18}/>, color: "text-purple-400" },
     { label: "構建客製化戰略方案", icon: <ShieldCheck size={18}/>, color: "text-rose-400" }
 ];
 
@@ -72,7 +72,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                 </div>
             </div>
 
-            {/* 內容區塊：強制不被分頁切斷 */}
+            {/* 內容區塊 */}
             <div className="p-16 space-y-20" style={{ width: '794px', boxSizing: 'border-box', backgroundColor: '#ffffff' }}>
                 {reportData.map((m, idx) => (
                     <div key={idx} className="analysis-case-container border-b border-slate-100 pb-20 last:border-0" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', display: 'block' }}>
@@ -103,7 +103,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                         {m.data?.strategic_solutions && (
                             <div className="mt-12 space-y-6">
                                 <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-4">
-                                    <Rocket size={16}/> 戰略執行核心方案
+                                    <Rocket size={16}/> 戰略執行方案
                                 </h4>
                                 <div className="grid grid-cols-1 gap-6">
                                     {m.data.strategic_solutions.map((sol, sIdx) => (
@@ -116,7 +116,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                                             </div>
                                             <p className="text-slate-600 mb-6 leading-relaxed text-md">{sol.description}</p>
                                             <div className="flex items-center gap-2 pt-4 border-t border-slate-200 text-emerald-600 font-bold text-[11px] uppercase tracking-widest">
-                                                <Target size={14}/> 能量轉換預測：{sol.impact}
+                                                <Target size={14}/> 核心影響：{sol.impact}
                                             </div>
                                         </div>
                                     ))}
@@ -126,7 +126,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
 
                         <div className="mt-12 space-y-4" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', display: 'block' }}>
                             <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-4">
-                                <CheckCircle2 size={16}/> 具體執行清單 (Action Items)
+                                <CheckCircle2 size={16}/> 具體執行清單
                             </h4>
                             <div className="grid grid-cols-1 gap-3">
                                 {m.data?.actionable_advice.map((adv, aIdx) => (
@@ -147,7 +147,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                     End of Analysis Report
                 </p>
                 <p className="text-slate-400 text-xs italic font-serif leading-relaxed px-16">
-                    本報告由東西命理科學顧問 AI 戰略引擎生成。分析結論基於紫微斗數大數據與時間能量概率預測，僅供個人決策與戰略佈局參考。
+                    本報告由東西命理科學顧問 AI 戰略引擎生成。分析結論僅供個人決策與佈局參考。
                 </p>
             </div>
         </div>
@@ -164,6 +164,9 @@ export const App = () => {
     const [isReportMode, setIsReportMode] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const endRef = useRef<HTMLDivElement>(null);
+
+    // Fix: Define 'lastMsg' to resolve 'Cannot find name lastMsg' error.
+    const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
 
     useEffect(() => { if (!isReportMode) endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isLoading, isReportMode]);
 
@@ -204,9 +207,7 @@ export const App = () => {
             const data = await callGeminiAPI(chart, queryText, messages, (fullText) => {
                 try {
                     const titleMatch = fullText.match(/"title":\s*"([^"]+)"/);
-                    if (titleMatch && titleMatch[1]) {
-                        setStreamingTitle(titleMatch[1]);
-                    }
+                    if (titleMatch && titleMatch[1]) setStreamingTitle(titleMatch[1]);
                 } catch (e) {}
             }, isDeep);
             
@@ -215,7 +216,7 @@ export const App = () => {
             console.error("Query Error:", err);
             setMessages(p => [...p, { 
                 type: 'error', 
-                content: "分析中斷，可能是網路波動。請再試一次。",
+                content: "建置分析中斷。請確認環境變數 API_KEY 是否正確配置。",
                 question: queryText
             }]);
         } finally {
@@ -233,13 +234,15 @@ export const App = () => {
 
         const opt = {
             margin: 0,
-            filename: `戰略分析報告_${chart.profile.name}.pdf`,
+            filename: `AI戰略報告_${chart.profile.name}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { 
                 scale: 2, 
                 useCORS: true, 
-                scrollY: 0, // 強制從最頂端截圖，修復位移空白問題
-                scrollX: 0
+                scrollY: 0,
+                scrollX: 0,
+                windowWidth: 794, // 鎖定窗口寬度確保不跑版
+                windowHeight: 1120
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak: { mode: ['css', 'legacy'] }
@@ -255,9 +258,6 @@ export const App = () => {
         }
     };
 
-    const lastMsg = messages[messages.length - 1];
-    const showFollowUps = lastMsg && lastMsg.type === 'ai' && !lastMsg.isGreeting && !isLoading;
-
     if (!chart) return <InputForm onStart={(d) => setChart(calculateChart(d))} />;
 
     return (
@@ -269,7 +269,7 @@ export const App = () => {
                         <div className="w-10 h-10 bg-slate-900 border border-white/10 rounded-xl flex items-center justify-center shadow-lg">
                             <BookOpen className="text-indigo-400" size={20}/>
                         </div>
-                        <h1 className="text-xl font-serif font-black text-white tracking-tighter hidden md:block italic">東西命理科學顧問</h1>
+                        <h1 className="text-xl font-serif font-black text-white tracking-tighter hidden md:block italic uppercase">A.I. Destiny Consultant</h1>
                     </div>
                     <div className="flex gap-4">
                         {messages.some(m => m.data) && (
@@ -284,7 +284,7 @@ export const App = () => {
                                 {isExporting ? '生成中...' : '下載報告'}
                             </button>
                         )}
-                        <button onClick={handleReset} title="重置對話" className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-full border border-white/10 transition-all active:rotate-180 duration-500"><RefreshCw size={18}/></button>
+                        <button onClick={handleReset} title="重置" className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-full border border-white/10 transition-all"><RefreshCw size={18}/></button>
                     </div>
                 </div>
             </div>
@@ -307,47 +307,44 @@ export const App = () => {
                                 <div key={i} className="animate-fade-in">
                                     {m.type === 'user' ? (
                                         <div className="flex justify-end">
-                                            <div className="bg-white/5 backdrop-blur-md text-white px-8 py-5 rounded-[2rem] rounded-tr-none border border-white/10 max-w-[80%] text-xl font-bold leading-relaxed shadow-xl">{m.content}</div>
+                                            <div className="bg-white/5 backdrop-blur-md text-white px-8 py-5 rounded-[2rem] rounded-tr-none border border-white/10 max-w-[80%] text-xl font-bold shadow-xl">{m.content}</div>
                                         </div>
                                     ) : m.isGreeting ? (
-                                        <div className="bg-slate-900/40 p-10 rounded-[2.5rem] border border-white/5 italic text-slate-400 text-lg font-serif font-black leading-relaxed shadow-inner">{m.content}</div>
+                                        <div className="bg-slate-900/40 p-10 rounded-[2.5rem] border border-white/5 italic text-slate-400 text-lg font-serif leading-relaxed shadow-inner">{m.content}</div>
                                     ) : m.data ? (
-                                        <div className="bg-slate-900/60 backdrop-blur-3xl p-8 md:p-14 rounded-[3.5rem] border border-indigo-500/20 shadow-2xl relative overflow-hidden">
-                                            <div className="relative z-10 space-y-10">
-                                                <div className="space-y-4">
-                                                    <div className="flex items-center gap-3"><span className="h-10 w-2 bg-indigo-600 rounded-full"></span><h2 className="text-4xl md:text-5xl font-serif font-black text-white italic tracking-tight">{m.data.executive_summary.title}</h2></div>
+                                        <div className="bg-slate-900/60 backdrop-blur-3xl p-8 md:p-14 rounded-[3.5rem] border border-indigo-500/20 shadow-2xl space-y-10 relative overflow-hidden">
+                                            <div className="relative z-10 space-y-6">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="h-10 w-2 bg-indigo-600 rounded-full"></span>
+                                                    <h2 className="text-4xl font-serif font-black text-white italic">{m.data.executive_summary.title}</h2>
                                                 </div>
-                                                <div className="space-y-8 text-slate-300 text-xl leading-relaxed font-serif text-justify border-l border-white/5 pl-8 ml-2 italic">
-                                                    <div className="flex flex-wrap gap-4 mb-6">
-                                                        <span className="px-5 py-2 bg-indigo-500/20 border border-indigo-500/30 rounded-full text-indigo-300 text-[10px] font-black uppercase tracking-widest">{m.data.executive_summary.direction}</span>
-                                                        <span className="px-5 py-2 bg-amber-500/20 border border-amber-500/30 rounded-full text-amber-300 text-[10px] font-black uppercase tracking-widest">⚠️ 警示：{m.data.zodiac_fortune.warning}</span>
-                                                    </div>
+                                                <div className="text-slate-300 text-xl leading-relaxed font-serif border-l border-white/5 pl-8 ml-2 italic">
                                                     {m.data.executive_summary.description}
                                                 </div>
                                             </div>
                                         </div>
                                     ) : m.type === 'error' ? (
                                         <div className="flex justify-center">
-                                            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-8 py-6 rounded-3xl text-sm font-bold flex flex-col items-center gap-4 max-w-lg text-center">
-                                                <AlertCircle size={24} className="text-red-500 mb-2"/>
-                                                <p className="text-slate-400 leading-relaxed font-medium">{m.content}</p>
-                                                <button onClick={() => m.question && performQuery(m.question)} className="px-6 py-2 bg-red-500 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-red-600 mt-4">點此重新嘗試</button>
+                                            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-8 py-6 rounded-3xl text-sm font-bold flex flex-col items-center gap-4 text-center">
+                                                <AlertCircle size={24} className="text-red-500"/>
+                                                <p>{m.content}</p>
+                                                <button onClick={() => m.question && performQuery(m.question)} className="px-6 py-2 bg-red-500 text-white rounded-full font-black text-[10px] uppercase tracking-widest mt-4">重新嘗試</button>
                                             </div>
                                         </div>
                                     ) : null}
                                 </div>
                             ))}
 
-                            {showFollowUps && (
+                            {lastMsg && lastMsg.type === 'ai' && !lastMsg.isGreeting && !isLoading && (
                                 <div className="flex flex-col gap-8 animate-fade-in border-t border-white/5 pt-12">
                                     <div className="flex items-center gap-3 text-indigo-400">
                                         <MessageSquarePlus size={20}/>
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">深度白話解析選項 / Pro Analysis</span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">深度白話解析模式 / Pro Analysis</span>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <button 
-                                            onClick={() => performQuery("是否深入解析？（請啟動 Pro 思考模組，以「最直白的語言」深度拆解命盤能量與長遠行動方針）", true)}
-                                            className="p-8 bg-indigo-600/10 border-2 border-indigo-500/40 rounded-[2.5rem] text-indigo-100 flex flex-col items-start gap-4 hover:bg-indigo-600/20 transition-all group relative overflow-hidden shadow-[0_0_40px_rgba(79,70,229,0.1)]"
+                                            onClick={() => performQuery("請啟動 Pro 思考模組，以「最直白的白話文」深度拆解命盤能量，並為我提供長遠且直觀的對策方案。", true)}
+                                            className="p-8 bg-indigo-600/10 border-2 border-indigo-500/40 rounded-[2.5rem] text-indigo-100 flex flex-col items-start gap-4 hover:bg-indigo-600/20 transition-all group relative overflow-hidden shadow-2xl"
                                         >
                                             <div className="absolute top-4 right-4 text-indigo-500/20 group-hover:text-indigo-500/40 transition-colors">
                                                 <Microscope size={56} />
@@ -357,22 +354,15 @@ export const App = () => {
                                                 🔮 是否深度白話解析？
                                             </div>
                                             <p className="text-[14px] text-indigo-300/80 leading-relaxed text-left font-serif italic">
-                                                啟動 Pro 思考模組。我將完全摒棄術語，用最易懂的語言拆解能量，提供您看一眼就能立刻執行的人生意圖導引。
+                                                啟動 Pro 思考模組。我將完全翻譯所有術語，用最直觀、易懂的語言拆解能量分佈，讓您看一眼就懂接下來該怎麼做。
                                             </p>
                                         </button>
-
                                         <div className="flex flex-col gap-4">
-                                            <button 
-                                                onClick={() => performQuery("請列出此戰略在接下來三個月的具體行動時間表建議")}
-                                                className="px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold flex items-center justify-between hover:bg-indigo-600/20 hover:border-indigo-500/30 transition-all group"
-                                            >
-                                                <span>行動方案：未來三月日程</span>
+                                            <button onClick={() => performQuery("請根據當前方針，列出未來三個月具體的行動時間建議表")} className="px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold flex items-center justify-between hover:bg-indigo-600/20 transition-all group">
+                                                <span>行動方案：未來三月日程表</span>
                                                 <ArrowRight size={16} className="text-slate-500 group-hover:text-indigo-400 transform group-hover:translate-x-1 transition-all" />
                                             </button>
-                                            <button 
-                                                onClick={() => performQuery("根據命盤配置，我該如何具體調整心態或行為來規避風險？")}
-                                                className="px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold flex items-center justify-between hover:bg-indigo-600/20 hover:border-indigo-500/30 transition-all group"
-                                            >
+                                            <button onClick={() => performQuery("這份解析中提到的潛在風險，該如何透過具體的白話改運指南進行規避？")} className="px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold flex items-center justify-between hover:bg-indigo-600/20 transition-all group">
                                                 <span>風險規避：白話避險建議</span>
                                                 <ArrowRight size={16} className="text-slate-500 group-hover:text-indigo-400 transform group-hover:translate-x-1 transition-all" />
                                             </button>
@@ -400,7 +390,7 @@ export const App = () => {
                     <div className="w-full flex flex-col items-center gap-10 py-10 bg-white/5 rounded-[4rem]">
                         <div className="text-center space-y-2">
                             <h2 className="text-2xl font-serif font-black italic text-white">報告預覽區</h2>
-                            <p className="text-slate-400 text-xs">下載 PDF 以獲取最佳排版效果（A4 比例，內容不切斷）。</p>
+                            <p className="text-slate-400 text-xs">建議下載 PDF 以獲得最佳排版（A4 比例，內容不攔腰切斷）。</p>
                         </div>
                         <div className="shadow-2xl origin-top bg-white overflow-hidden rounded-xl border border-slate-200" style={{ transform: 'scale(0.8)', width: '794px' }}>
                             <ProfessionalPDFTemplate id="report-preview-view" messages={messages} chart={chart} />
@@ -413,14 +403,14 @@ export const App = () => {
                 <div className="fixed bottom-0 left-0 right-0 p-8 md:p-12 bg-gradient-to-t from-black via-black/95 to-transparent z-40">
                     <div className="max-w-4xl mx-auto">
                         <form onSubmit={(e) => { e.preventDefault(); performQuery(input); }} className="relative group">
-                            <input value={input} onChange={e => setInput(e.target.value)} disabled={isLoading} placeholder="輸入提問 (例如：2026 整體運勢、財運佈局...)" className="w-full bg-slate-900/90 backdrop-blur-3xl border border-white/10 rounded-full px-12 py-7 text-white text-xl outline-none focus:border-indigo-500/50 pr-28 shadow-2xl transition-all font-serif" />
+                            <input value={input} onChange={e => setInput(e.target.value)} disabled={isLoading} placeholder="輸入提問 (例如：2026 財運佈局、創業時機...)" className="w-full bg-slate-900/90 backdrop-blur-3xl border border-white/10 rounded-full px-12 py-7 text-white text-xl outline-none focus:border-indigo-500/50 pr-28 shadow-2xl transition-all font-serif" />
                             <button type="submit" disabled={!input.trim() || isLoading} className="absolute right-4 top-4 bottom-4 aspect-square bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-500 transition-all active:scale-90 disabled:opacity-30"><ChevronRight size={32} /></button>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* 導出用的隱藏節點 */}
+            {/* 隱藏的匯出節點 */}
             <div className="fixed" style={{ top: '-9999px', left: '-9999px', zIndex: -1000 }}>
                 <div style={{ width: '794px', backgroundColor: '#ffffff' }}>
                     {chart && <ProfessionalPDFTemplate id="report-pdf-export-source" messages={messages} chart={chart} />}
@@ -434,33 +424,33 @@ const InputForm = ({ onStart }: { onStart: (data: AppFormData) => void }) => {
     const [formData, setFormData] = useState<AppFormData>({ name: '', gender: 'male', birthDate: '1995-01-01', birthTime: '12:00', inputType: 'solar', lunarYear: '', lunarMonth: '', lunarDay: '' });
     return (
         <div className="min-h-screen bg-[#050505] flex items-center justify-center p-8">
-            <div className="w-full max-w-2xl bg-slate-900/50 backdrop-blur-3xl p-12 md:p-20 rounded-[4rem] border border-white/10 shadow-[0_0_80px_rgba(79,70,229,0.1)] animate-fade-in">
+            <div className="w-full max-w-2xl bg-slate-900/50 backdrop-blur-3xl p-12 md:p-20 rounded-[4rem] border border-white/10 shadow-2xl animate-fade-in">
                 <div className="flex flex-col items-center mb-16 text-center">
                     <div className="w-20 h-20 bg-indigo-600 rounded-[2rem] flex items-center justify-center shadow-2xl mb-8 rotate-3"><Sparkles className="text-white" size={40} /></div>
-                    <h1 className="text-5xl font-serif font-black text-white mb-4 italic tracking-tight">東西命理科學顧問</h1>
-                    <p className="text-slate-500 font-black text-[10px] uppercase tracking-[0.5em] opacity-80 italic">A.I. STRATEGY ENGINE</p>
+                    <h1 className="text-5xl font-serif font-black text-white mb-4 italic tracking-tight uppercase">Strategic Engine</h1>
+                    <p className="text-slate-500 font-black text-[10px] uppercase tracking-[0.5em] italic">Intelligence Metaphysics</p>
                 </div>
                 <form onSubmit={(e) => { e.preventDefault(); onStart(formData); }} className="space-y-10">
                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">諮詢者全名</label>
-                        <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="輸入姓名" className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-xl transition-all" />
+                        <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">諮詢者姓名</label>
+                        <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="輸入姓名" className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-xl" />
                     </div>
                     <div className="grid grid-cols-2 gap-8">
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">出生日期</label>
-                            <input required type="date" value={formData.birthDate} onChange={e => setFormData({ ...formData, birthDate: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-lg transition-all" style={{colorScheme: 'dark'}} />
+                            <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">陽曆日期</label>
+                            <input required type="date" value={formData.birthDate} onChange={e => setFormData({ ...formData, birthDate: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white text-lg" style={{colorScheme: 'dark'}} />
                         </div>
                         <div className="space-y-3">
                             <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">出生時辰</label>
-                            <input required type="time" value={formData.birthTime} onChange={e => setFormData({ ...formData, birthTime: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-lg transition-all" style={{colorScheme: 'dark'}} />
+                            <input required type="time" value={formData.birthTime} onChange={e => setFormData({ ...formData, birthTime: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white text-lg" style={{colorScheme: 'dark'}} />
                         </div>
                     </div>
                     <div className="flex gap-4">
                         {(['male', 'female'] as const).map(g => (
-                            <button key={g} type="button" onClick={() => setFormData({ ...formData, gender: g })} className={`flex-1 py-6 rounded-[2rem] border font-black text-[11px] uppercase tracking-[0.2em] transition-all ${formData.gender === g ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg' : 'bg-white/5 border-white/10 text-slate-500'}`}>{g === 'male' ? '乾造 (MALE)' : '坤造 (FEMALE)'}</button>
+                            <button key={g} type="button" onClick={() => setFormData({ ...formData, gender: g })} className={`flex-1 py-6 rounded-[2rem] border font-black text-[11px] uppercase tracking-widest transition-all ${formData.gender === g ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-white/5 border-white/10 text-slate-500'}`}>{g === 'male' ? '乾造 (MALE)' : '坤造 (FEMALE)'}</button>
                         ))}
                     </div>
-                    <button type="submit" className="w-full bg-white text-slate-950 py-7 rounded-[2.5rem] font-black text-xl uppercase tracking-widest flex items-center justify-center gap-4 hover:scale-[1.03] active:scale-95 transition-all shadow-2xl mt-4">開啟命運解析 <ArrowRight size={24} /></button>
+                    <button type="submit" className="w-full bg-white text-slate-950 py-7 rounded-[2.5rem] font-black text-xl uppercase tracking-widest flex items-center justify-center gap-4 hover:scale-[1.03] transition-all shadow-2xl mt-4">進入解析系統 <ArrowRight size={24} /></button>
                 </form>
             </div>
         </div>
@@ -486,7 +476,7 @@ const ZiweiChart = ({ chart, onEdit }: { chart: ChartData, onEdit: () => void })
             ))}
             <div className="col-start-2 col-end-4 row-start-2 row-end-4 flex flex-col items-center justify-center text-center p-10 bg-slate-900/90 rounded-[3rem] border border-white/10 z-20 shadow-2xl">
                 <div className="w-20 h-20 rounded-[2.5rem] bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center border border-white/20 shadow-2xl mb-8 rotate-3"><Compass className="text-white" size={40} /></div>
-                <h2 className="text-3xl md:text-5xl font-serif font-black text-white mb-3 italic tracking-tighter">{chart.profile.name}</h2>
+                <h2 className="text-3xl md:text-5xl font-serif font-black text-white mb-3 italic">{chart.profile.name}</h2>
                 <div className="flex gap-3 mb-8">
                     <span className="text-[10px] bg-indigo-50/10 text-indigo-300 px-4 py-1 rounded-full font-black uppercase tracking-widest border border-indigo-500/30">{chart.ziwei.animal}年</span>
                     <span className="text-[10px] bg-amber-50/10 text-amber-300 px-4 py-1 rounded-full font-black uppercase tracking-widest border border-amber-500/30">{chart.western.zodiac}</span>
