@@ -4,21 +4,21 @@ import {
   Sparkles, Brain, Edit3, Loader2, RefreshCw, Download, 
   ArrowRight, ChevronRight,
   Compass, BookOpen, Rocket, Target, CheckCircle2,
-  HeartPulse, Users, Wallet, ShieldCheck, Search,
-  AlertCircle, MessageSquarePlus, Zap, Microscope
+  HeartPulse, Users, Wallet, Microscope, ShieldCheck, Search,
+  AlertCircle
 } from 'lucide-react';
 import { calculateChart } from './MetaphysicsEngine';
-import { callGeminiAPI } from './services/geminiService'; 
+import { callGeminiAPI } from './geminiService'; 
 import { ChartData, Message, FormData as AppFormData, AIResponse } from './types';
 
 declare const html2pdf: any;
 
 const GUIDANCE_QUESTIONS = [
-    { label: "命盤解析", icon: <Brain size={20}/>, query: "請解析我的命盤格局" },
-    { label: "2026運勢", icon: <Sparkles size={20}/>, query: "分析 2026 整體運勢" },
-    { label: "財運分析", icon: <Wallet size={20}/>, query: "分析 2026 財運佈局" },
-    { label: "人際博弈", icon: <Users size={20}/>, query: "分析 2026 人際與貴人" },
-    { label: "健康提醒", icon: <HeartPulse size={20}/>, query: "分析 2026 健康狀況" }
+    { label: "命盤解析", icon: <Brain size={20}/>, query: "請根據我的命盤格局，進行全面的深度解析，包含主星特質、核心格局大局以及天賦潛能。" },
+    { label: "2026整體運勢", icon: <Sparkles size={20}/>, query: "請深度分析 2026 丙午年的整體運勢走勢，包含流年四化對我的具體宮位衝擊與機會。" },
+    { label: "財運分析", icon: <Wallet size={20}/>, query: "分析我 2026 年的財帛宮與祿存星動向，針對財富佈局、投資避險給予具體戰略建議。" },
+    { label: "人際博弈", icon: <Users size={20}/>, query: "從交友宮與父母宮角度，分析我 2026 年的人際博弈、貴人運勢以及職場社交管理策略。" },
+    { label: "健康提醒", icon: <HeartPulse size={20}/>, query: "分析我 2026 年的疾厄宮狀況，針對潛在的健康風險、身心平衡與生活節奏調整給予建議。" }
 ];
 
 const INITIAL_MESSAGES: Message[] = [{ 
@@ -30,8 +30,8 @@ const INITIAL_MESSAGES: Message[] = [{
 const THINKING_STEPS = [
     { label: "啟動戰略引擎", icon: <Rocket size={18}/>, color: "text-indigo-400" },
     { label: "解析 2026 丙午年流年四化軌跡", icon: <Sparkles size={18}/>, color: "text-amber-400" },
-    { label: "對齊命盤宮位配置", icon: <Compass size={18}/>, color: "text-blue-400" },
-    { label: "啟動 Pro 思考模組進行深度白話推理", icon: <Brain size={18}/>, color: "text-purple-400" },
+    { label: "深度對齊命盤宮位星曜配置", icon: <Compass size={18}/>, color: "text-blue-400" },
+    { label: "檢索 Google Search 全球趨勢", icon: <Search size={18}/>, color: "text-emerald-400" },
     { label: "構建客製化戰略方案", icon: <ShieldCheck size={18}/>, color: "text-rose-400" }
 ];
 
@@ -39,9 +39,8 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
     const reportData = messages.filter(m => m.data);
 
     return (
-        <div id={id} className="bg-white text-slate-900" style={{ width: '794px', margin: '0', padding: '0', boxSizing: 'border-box', fontFamily: 'serif', overflow: 'hidden', backgroundColor: '#ffffff' }}>
-            {/* 第 1 頁：封面 */}
-            <div className="pdf-page-cover flex flex-col items-center justify-center text-center relative" style={{ height: '1120px', width: '794px', pageBreakAfter: 'always', backgroundColor: '#ffffff', padding: '0 80px', boxSizing: 'border-box' }}>
+        <div id={id} className="bg-white text-slate-900" style={{ width: '794px', minHeight: '1123px', padding: '0', margin: '0', boxSizing: 'border-box', fontFamily: 'serif', display: 'block', overflow: 'hidden' }}>
+            <div className="flex flex-col items-center justify-center text-center relative" style={{ height: '1120px', width: '794px', pageBreakAfter: 'always', backgroundColor: '#ffffff', padding: '0 80px', boxSizing: 'border-box' }}>
                 <div className="w-full border-t-4 border-b-4 border-indigo-600 py-24 relative flex flex-col items-center">
                     <div className="absolute -top-5 bg-white px-8 py-1 text-indigo-600 text-[14px] font-black tracking-[0.5em] uppercase border-2 border-indigo-600 rounded-full whitespace-nowrap">
                         Strategic Destiny Analysis
@@ -71,68 +70,63 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                     <p className="text-[11px] text-slate-300 font-mono tracking-[0.8em] uppercase">Intelligence by Gemini AI System</p>
                 </div>
             </div>
-
-            {/* 內容區塊 */}
-            <div className="p-16 space-y-20" style={{ width: '794px', boxSizing: 'border-box', backgroundColor: '#ffffff' }}>
+            <div className="p-20 space-y-24" style={{ width: '794px', boxSizing: 'border-box' }}>
                 {reportData.map((m, idx) => (
-                    <div key={idx} className="analysis-case-container border-b border-slate-100 pb-20 last:border-0" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', display: 'block' }}>
-                        <div className="flex items-center gap-6 mb-10">
-                            <span className="text-8xl font-black text-slate-100 leading-none" style={{ fontFamily: 'sans-serif' }}>{idx + 1}</span>
-                            <div className="pt-4">
-                                <p className="text-[10px] font-black text-indigo-600 tracking-[0.4em] uppercase mb-1">STRATEGIC ANALYSIS CASE</p>
-                                <h2 className="text-3xl font-bold text-slate-800 leading-tight">{m.question}</h2>
+                    <div key={idx} className="border-b border-slate-100 pb-20 last:border-0">
+                        <div className="flex items-center gap-8 mb-12" style={{ pageBreakInside: 'avoid' }}>
+                            <span className="text-9xl font-black text-slate-100 leading-none" style={{ fontFamily: 'sans-serif' }}>{idx + 1}</span>
+                            <div className="pt-6">
+                                <p className="text-[12px] font-black text-indigo-600 tracking-[0.4em] uppercase mb-2">STRATEGIC ANALYSIS CASE</p>
+                                <h2 className="text-4xl font-bold text-slate-800 leading-tight">{m.question}</h2>
                             </div>
                         </div>
-                        
-                        <div className="executive-summary-section space-y-8">
+                        <div className="space-y-10">
                             <div style={{ pageBreakInside: 'avoid' }}>
-                                <h3 className="text-4xl font-black italic text-slate-900 border-l-8 border-indigo-600 pl-8 leading-tight mb-6">
+                                <h3 className="text-5xl font-black italic text-slate-900 border-l-8 border-indigo-600 pl-10 leading-tight mb-8">
                                     {m.data?.executive_summary.title}
                                 </h3>
-                                <div className="mb-6">
-                                    <span className="bg-indigo-600 text-white text-[10px] font-black px-5 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-md">
+                                <div className="flex items-center gap-6 mb-8">
+                                    <span className="bg-indigo-600 text-white text-[11px] font-black px-6 py-2 rounded-full uppercase tracking-[0.2em] shadow-lg">
                                         核心方針：{m.data?.executive_summary.direction}
                                     </span>
                                 </div>
                             </div>
-                            <p className="text-lg text-slate-700 leading-[1.8] text-justify whitespace-pre-wrap font-serif italic border-l border-slate-100 pl-8">
+                            <p className="text-xl text-slate-700 leading-[1.8] text-justify whitespace-pre-wrap font-serif italic" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                                 {m.data?.executive_summary.description}
                             </p>
                         </div>
-
                         {m.data?.strategic_solutions && (
-                            <div className="mt-12 space-y-6">
-                                <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-4">
-                                    <Rocket size={16}/> 戰略執行方案
+                            <div className="mt-16 space-y-8">
+                                <h4 className="text-[12px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-3 mb-6">
+                                    <Rocket size={20}/> 戰略執行核心方案
                                 </h4>
-                                <div className="grid grid-cols-1 gap-6">
+                                <div className="grid grid-cols-1 gap-8">
                                     {m.data.strategic_solutions.map((sol, sIdx) => (
-                                        <div key={sIdx} className="bg-slate-50 p-8 rounded-[2rem] border border-slate-200 shadow-sm" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', display: 'block' }}>
-                                            <div className="flex justify-between items-start mb-4">
-                                                <h5 className="text-xl font-bold text-slate-900">{sol.title}</h5>
-                                                <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${sol.priority === 'High' ? 'bg-red-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
+                                        <div key={sIdx} className="bg-slate-50 p-10 rounded-[2.5rem] border border-slate-200 shadow-sm" style={{ pageBreakInside: 'avoid' }}>
+                                            <div className="flex justify-between items-start mb-6">
+                                                <h5 className="text-2xl font-bold text-slate-900">{sol.title}</h5>
+                                                <span className={`px-6 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest ${sol.priority === 'High' ? 'bg-red-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
                                                     {sol.priority}
                                                 </span>
                                             </div>
-                                            <p className="text-slate-600 mb-6 leading-relaxed text-md">{sol.description}</p>
-                                            <div className="flex items-center gap-2 pt-4 border-t border-slate-200 text-emerald-600 font-bold text-[11px] uppercase tracking-widest">
-                                                <Target size={14}/> 核心影響：{sol.impact}
+                                            <p className="text-slate-600 mb-8 leading-relaxed text-lg">{sol.description}</p>
+                                            <div className="flex items-center gap-3 pt-6 border-t border-slate-200 text-emerald-600 font-bold text-[13px] uppercase tracking-widest">
+                                                <Target size={18}/> 能量轉換預測：{sol.impact}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
-
-                        <div className="mt-12 space-y-4" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', display: 'block' }}>
-                            <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-4">
-                                <CheckCircle2 size={16}/> 具體執行清單
+                        <div className="mt-16 space-y-6">
+                            <h4 className="text-[12px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-3 mb-6">
+                                <CheckCircle2 size={20}/> 具體執行清單 (Action Items)
                             </h4>
-                            <div className="grid grid-cols-1 gap-3">
+                            <div className="space-y-4">
                                 {m.data?.actionable_advice.map((adv, aIdx) => (
-                                    <div key={aIdx} className="flex gap-4 p-5 bg-indigo-50/40 border border-indigo-100 rounded-2xl items-start">
-                                        <span className="font-black text-indigo-600 text-[11px] shrink-0 pt-0.5">[{adv.type}]</span>
-                                        <p className="text-[14px] text-slate-700 font-medium leading-relaxed">{adv.content}</p>
+                                    <div key={aIdx} className="flex gap-6 p-6 bg-indigo-50/40 border border-indigo-100 rounded-3xl items-start" style={{ pageBreakInside: 'avoid' }}>
+                                        <span className="font-black text-indigo-600 text-[13px] shrink-0 pt-1">[{adv.type}]</span>
+                                        <p className="text-[15px] text-slate-700 font-medium leading-relaxed">{adv.content}</p>
                                     </div>
                                 ))}
                             </div>
@@ -140,14 +134,12 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                     </div>
                 ))}
             </div>
-
-            {/* 結尾 */}
-            <div className="p-16 text-center border-t border-slate-100" style={{ width: '794px', pageBreakInside: 'avoid', backgroundColor: '#ffffff' }}>
-                <p className="text-slate-300 font-mono text-[10px] uppercase tracking-[1em] mb-4">
+            <div className="p-24 text-center border-t border-slate-100" style={{ width: '794px', pageBreakBefore: 'auto' }}>
+                <p className="text-slate-300 font-mono text-[12px] uppercase tracking-[1em] mb-6">
                     End of Analysis Report
                 </p>
-                <p className="text-slate-400 text-xs italic font-serif leading-relaxed px-16">
-                    本報告由東西命理科學顧問 AI 戰略引擎生成。分析結論僅供個人決策與佈局參考。
+                <p className="text-slate-400 text-sm italic font-serif leading-relaxed px-20">
+                    本報告由東西命理科學顧問 AI 戰略引擎生成。分析結論基於紫微斗數大數據與時間能量概率預測，僅供個人決策與戰略佈局參考。
                 </p>
             </div>
         </div>
@@ -164,9 +156,6 @@ export const App = () => {
     const [isReportMode, setIsReportMode] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const endRef = useRef<HTMLDivElement>(null);
-
-    // Fix: Define 'lastMsg' to resolve 'Cannot find name lastMsg' error.
-    const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
 
     useEffect(() => { if (!isReportMode) endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, isLoading, isReportMode]);
 
@@ -192,7 +181,7 @@ export const App = () => {
         setIsExporting(false);
     };
 
-    const performQuery = async (queryText: string, isDeep: boolean = false) => {
+    const performQuery = async (queryText: string) => {
         if (!queryText.trim() || isLoading || !chart) return;
         
         setIsReportMode(false);
@@ -207,16 +196,18 @@ export const App = () => {
             const data = await callGeminiAPI(chart, queryText, messages, (fullText) => {
                 try {
                     const titleMatch = fullText.match(/"title":\s*"([^"]+)"/);
-                    if (titleMatch && titleMatch[1]) setStreamingTitle(titleMatch[1]);
+                    if (titleMatch && titleMatch[1]) {
+                        setStreamingTitle(titleMatch[1]);
+                    }
                 } catch (e) {}
-            }, isDeep);
+            });
             
             setMessages(p => [...p, { type: 'ai', data, question: queryText }]);
         } catch (err: any) {
             console.error("Query Error:", err);
             setMessages(p => [...p, { 
                 type: 'error', 
-                content: "建置分析中斷。請確認環境變數 API_KEY 是否正確配置。",
+                content: "網路波動或 AI 思考過久。這通常是因為搜尋任務繁忙，請嘗試簡化提問後再次諮詢。",
                 question: queryText
             }]);
         } finally {
@@ -230,20 +221,13 @@ export const App = () => {
         if (!element || !chart) return;
 
         setIsExporting(true);
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 2500));
 
         const opt = {
             margin: 0,
-            filename: `AI戰略報告_${chart.profile.name}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true, 
-                scrollY: 0,
-                scrollX: 0,
-                windowWidth: 794, // 鎖定窗口寬度確保不跑版
-                windowHeight: 1120
-            },
+            filename: `戰略命理報告_${chart.profile.name}.pdf`,
+            image: { type: 'jpeg', quality: 1.0 },
+            html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak: { mode: ['css', 'legacy'] }
         };
@@ -269,7 +253,7 @@ export const App = () => {
                         <div className="w-10 h-10 bg-slate-900 border border-white/10 rounded-xl flex items-center justify-center shadow-lg">
                             <BookOpen className="text-indigo-400" size={20}/>
                         </div>
-                        <h1 className="text-xl font-serif font-black text-white tracking-tighter hidden md:block italic uppercase">A.I. Destiny Consultant</h1>
+                        <h1 className="text-xl font-serif font-black text-white tracking-tighter hidden md:block italic">東西命理科學顧問</h1>
                     </div>
                     <div className="flex gap-4">
                         {messages.some(m => m.data) && (
@@ -284,7 +268,7 @@ export const App = () => {
                                 {isExporting ? '生成中...' : '下載報告'}
                             </button>
                         )}
-                        <button onClick={handleReset} title="重置" className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-full border border-white/10 transition-all"><RefreshCw size={18}/></button>
+                        <button onClick={handleReset} title="重置對話" className="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-full border border-white/10 transition-all active:rotate-180 duration-500"><RefreshCw size={18}/></button>
                     </div>
                 </div>
             </div>
@@ -307,78 +291,82 @@ export const App = () => {
                                 <div key={i} className="animate-fade-in">
                                     {m.type === 'user' ? (
                                         <div className="flex justify-end">
-                                            <div className="bg-white/5 backdrop-blur-md text-white px-8 py-5 rounded-[2rem] rounded-tr-none border border-white/10 max-w-[80%] text-xl font-bold shadow-xl">{m.content}</div>
+                                            <div className="bg-white/5 backdrop-blur-md text-white px-8 py-5 rounded-[2rem] rounded-tr-none border border-white/10 max-w-[80%] text-xl font-bold leading-relaxed shadow-xl">{m.content}</div>
                                         </div>
                                     ) : m.isGreeting ? (
-                                        <div className="bg-slate-900/40 p-10 rounded-[2.5rem] border border-white/5 italic text-slate-400 text-lg font-serif leading-relaxed shadow-inner">{m.content}</div>
+                                        <div className="bg-slate-900/40 p-10 rounded-[2.5rem] border border-white/5 italic text-slate-400 text-lg font-serif font-black leading-relaxed shadow-inner">{m.content}</div>
                                     ) : m.data ? (
-                                        <div className="bg-slate-900/60 backdrop-blur-3xl p-8 md:p-14 rounded-[3.5rem] border border-indigo-500/20 shadow-2xl space-y-10 relative overflow-hidden">
-                                            <div className="relative z-10 space-y-6">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="h-10 w-2 bg-indigo-600 rounded-full"></span>
-                                                    <h2 className="text-4xl font-serif font-black text-white italic">{m.data.executive_summary.title}</h2>
+                                        <div className="bg-slate-900/60 backdrop-blur-3xl p-8 md:p-14 rounded-[3.5rem] border border-indigo-500/20 shadow-2xl relative overflow-hidden">
+                                            <div className="relative z-10 space-y-10">
+                                                <div className="space-y-4">
+                                                    <div className="flex items-center gap-3"><span className="h-10 w-2 bg-indigo-600 rounded-full"></span><h2 className="text-4xl md:text-5xl font-serif font-black text-white italic tracking-tight">{m.data.executive_summary.title}</h2></div>
                                                 </div>
-                                                <div className="text-slate-300 text-xl leading-relaxed font-serif border-l border-white/5 pl-8 ml-2 italic">
+                                                <div className="space-y-8 text-slate-300 text-xl leading-relaxed font-serif text-justify border-l border-white/5 pl-8 ml-2 italic">
+                                                    <div className="flex flex-wrap gap-4 mb-6">
+                                                        <span className="px-5 py-2 bg-indigo-500/20 border border-indigo-500/30 rounded-full text-indigo-300 text-[10px] font-black uppercase tracking-widest">{m.data.executive_summary.direction}</span>
+                                                        <span className="px-5 py-2 bg-amber-500/20 border border-amber-500/30 rounded-full text-amber-300 text-[10px] font-black uppercase tracking-widest">⚠️ 警示：{m.data.zodiac_fortune.warning}</span>
+                                                    </div>
                                                     {m.data.executive_summary.description}
                                                 </div>
+                                                {m.data.strategic_solutions && (
+                                                    <div className="space-y-6">
+                                                        <h3 className="text-lg font-black text-amber-400 uppercase tracking-[0.2em] flex items-center gap-2"><Rocket size={18}/> 戰略建議方案</h3>
+                                                        <div className="grid grid-cols-1 gap-4">
+                                                            {m.data.strategic_solutions.map((sol, idx) => (
+                                                                <div key={idx} className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-all">
+                                                                    <div className="flex justify-between items-center mb-2">
+                                                                        <h4 className="text-white font-bold text-lg">{sol.title}</h4>
+                                                                        <span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${sol.priority === 'High' ? 'bg-red-500/20 text-red-400' : 'bg-indigo-500/10 text-indigo-400'}`}>{sol.priority}</span>
+                                                                    </div>
+                                                                    <p className="text-slate-400 text-sm leading-relaxed mb-3">{sol.description}</p>
+                                                                    <p className="text-emerald-400 text-xs font-bold flex items-center gap-2"><CheckCircle2 size={14}/> 核心影響：{sol.impact}</p>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     ) : m.type === 'error' ? (
                                         <div className="flex justify-center">
-                                            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-8 py-6 rounded-3xl text-sm font-bold flex flex-col items-center gap-4 text-center">
-                                                <AlertCircle size={24} className="text-red-500"/>
-                                                <p>{m.content}</p>
-                                                <button onClick={() => m.question && performQuery(m.question)} className="px-6 py-2 bg-red-500 text-white rounded-full font-black text-[10px] uppercase tracking-widest mt-4">重新嘗試</button>
+                                            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-8 py-6 rounded-3xl text-sm font-bold flex flex-col items-center gap-4 max-w-lg text-center">
+                                                <div className="flex items-center gap-3 text-red-500">
+                                                    <AlertCircle size={24}/> 
+                                                    <span className="text-lg font-black">分析中斷</span>
+                                                </div>
+                                                <p className="text-slate-400 leading-relaxed font-medium">{m.content}</p>
+                                                <button onClick={() => m.question && performQuery(m.question)} className="px-6 py-2 bg-red-500 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-red-600">點此重新嘗試</button>
                                             </div>
                                         </div>
                                     ) : null}
                                 </div>
                             ))}
-
-                            {lastMsg && lastMsg.type === 'ai' && !lastMsg.isGreeting && !isLoading && (
-                                <div className="flex flex-col gap-8 animate-fade-in border-t border-white/5 pt-12">
-                                    <div className="flex items-center gap-3 text-indigo-400">
-                                        <MessageSquarePlus size={20}/>
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">深度白話解析模式 / Pro Analysis</span>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <button 
-                                            onClick={() => performQuery("請啟動 Pro 思考模組，以「最直白的白話文」深度拆解命盤能量，並為我提供長遠且直觀的對策方案。", true)}
-                                            className="p-8 bg-indigo-600/10 border-2 border-indigo-500/40 rounded-[2.5rem] text-indigo-100 flex flex-col items-start gap-4 hover:bg-indigo-600/20 transition-all group relative overflow-hidden shadow-2xl"
-                                        >
-                                            <div className="absolute top-4 right-4 text-indigo-500/20 group-hover:text-indigo-500/40 transition-colors">
-                                                <Microscope size={56} />
-                                            </div>
-                                            <div className="flex items-center gap-3 font-black text-xl">
-                                                <Zap size={22} className="text-amber-400 fill-amber-400 animate-pulse" />
-                                                🔮 是否深度白話解析？
-                                            </div>
-                                            <p className="text-[14px] text-indigo-300/80 leading-relaxed text-left font-serif italic">
-                                                啟動 Pro 思考模組。我將完全翻譯所有術語，用最直觀、易懂的語言拆解能量分佈，讓您看一眼就懂接下來該怎麼做。
-                                            </p>
-                                        </button>
-                                        <div className="flex flex-col gap-4">
-                                            <button onClick={() => performQuery("請根據當前方針，列出未來三個月具體的行動時間建議表")} className="px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold flex items-center justify-between hover:bg-indigo-600/20 transition-all group">
-                                                <span>行動方案：未來三月日程表</span>
-                                                <ArrowRight size={16} className="text-slate-500 group-hover:text-indigo-400 transform group-hover:translate-x-1 transition-all" />
-                                            </button>
-                                            <button onClick={() => performQuery("這份解析中提到的潛在風險，該如何透過具體的白話改運指南進行規避？")} className="px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold flex items-center justify-between hover:bg-indigo-600/20 transition-all group">
-                                                <span>風險規避：白話避險建議</span>
-                                                <ArrowRight size={16} className="text-slate-500 group-hover:text-indigo-400 transform group-hover:translate-x-1 transition-all" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
                             {isLoading && (
                                 <div className="flex flex-col gap-6 animate-fade-in">
                                     <div className="bg-slate-900/60 backdrop-blur-3xl p-10 md:p-14 rounded-[3.5rem] border border-white/5 shadow-2xl space-y-8">
                                         <div className="flex items-center gap-6">
-                                            <Loader2 className="animate-spin text-indigo-500" size={28}/>
-                                            <p className={`text-xl font-serif font-black italic tracking-tight transition-all duration-500 ${THINKING_STEPS[thinkingStep].color}`}>
-                                                {THINKING_STEPS[thinkingStep].label}...
-                                            </p>
+                                            <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg animate-pulse">
+                                                <Loader2 className="animate-spin text-white" size={28}/>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <p className={`text-xl font-serif font-black italic tracking-tight transition-all duration-500 ${THINKING_STEPS[thinkingStep].color}`}>
+                                                    {THINKING_STEPS[thinkingStep].label}...
+                                                </p>
+                                                <div className="flex items-center gap-2 text-slate-500 text-xs font-black uppercase tracking-widest">
+                                                    {THINKING_STEPS[thinkingStep].icon} 高速引擎正在處理
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {streamingTitle && (
+                                            <div className="pt-6 border-t border-white/5 animate-fade-in">
+                                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">預覽戰略核心 (Partial Preview)...</p>
+                                                <h3 className="text-2xl font-serif font-black text-indigo-400 italic">「{streamingTitle}」</h3>
+                                            </div>
+                                        )}
+                                        <div className="grid grid-cols-5 gap-2 pt-4">
+                                            {THINKING_STEPS.map((_, i) => (
+                                                <div key={i} className={`h-1 rounded-full transition-all duration-700 ${i === thinkingStep ? 'bg-indigo-500 w-full' : 'bg-white/10 w-full opacity-30'}`}></div>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
@@ -388,11 +376,8 @@ export const App = () => {
                     </>
                 ) : (
                     <div className="w-full flex flex-col items-center gap-10 py-10 bg-white/5 rounded-[4rem]">
-                        <div className="text-center space-y-2">
-                            <h2 className="text-2xl font-serif font-black italic text-white">報告預覽區</h2>
-                            <p className="text-slate-400 text-xs">建議下載 PDF 以獲得最佳排版（A4 比例，內容不攔腰切斷）。</p>
-                        </div>
-                        <div className="shadow-2xl origin-top bg-white overflow-hidden rounded-xl border border-slate-200" style={{ transform: 'scale(0.8)', width: '794px' }}>
+                        <div className="text-center space-y-2"><h2 className="text-2xl font-serif font-black italic text-white">報告預覽區</h2><p className="text-slate-400 text-xs">下載 PDF 以獲取最佳閱讀體驗。</p></div>
+                        <div className="shadow-2xl transform scale-[0.6] md:scale-90 origin-top bg-white border border-slate-200">
                             <ProfessionalPDFTemplate id="report-preview-view" messages={messages} chart={chart} />
                         </div>
                     </div>
@@ -401,17 +386,16 @@ export const App = () => {
 
             {!isReportMode && (
                 <div className="fixed bottom-0 left-0 right-0 p-8 md:p-12 bg-gradient-to-t from-black via-black/95 to-transparent z-40">
-                    <div className="max-w-4xl mx-auto">
+                    <div className="max-w-4xl mx-auto space-y-6">
                         <form onSubmit={(e) => { e.preventDefault(); performQuery(input); }} className="relative group">
-                            <input value={input} onChange={e => setInput(e.target.value)} disabled={isLoading} placeholder="輸入提問 (例如：2026 財運佈局、創業時機...)" className="w-full bg-slate-900/90 backdrop-blur-3xl border border-white/10 rounded-full px-12 py-7 text-white text-xl outline-none focus:border-indigo-500/50 pr-28 shadow-2xl transition-all font-serif" />
+                            <input value={input} onChange={e => setInput(e.target.value)} disabled={isLoading} placeholder="輸入提問 (例如：2026 創業方向、感情佈局...)" className="w-full bg-slate-900/90 backdrop-blur-3xl border border-white/10 rounded-full px-12 py-7 text-white text-xl outline-none focus:border-indigo-500/50 pr-28 shadow-2xl transition-all font-serif" />
                             <button type="submit" disabled={!input.trim() || isLoading} className="absolute right-4 top-4 bottom-4 aspect-square bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-500 transition-all active:scale-90 disabled:opacity-30"><ChevronRight size={32} /></button>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* 隱藏的匯出節點 */}
-            <div className="fixed" style={{ top: '-9999px', left: '-9999px', zIndex: -1000 }}>
+            <div className="fixed" style={{ top: '0', left: '0', zIndex: -1000, visibility: 'hidden', pointerEvents: 'none' }}>
                 <div style={{ width: '794px', backgroundColor: '#ffffff' }}>
                     {chart && <ProfessionalPDFTemplate id="report-pdf-export-source" messages={messages} chart={chart} />}
                 </div>
@@ -424,33 +408,33 @@ const InputForm = ({ onStart }: { onStart: (data: AppFormData) => void }) => {
     const [formData, setFormData] = useState<AppFormData>({ name: '', gender: 'male', birthDate: '1995-01-01', birthTime: '12:00', inputType: 'solar', lunarYear: '', lunarMonth: '', lunarDay: '' });
     return (
         <div className="min-h-screen bg-[#050505] flex items-center justify-center p-8">
-            <div className="w-full max-w-2xl bg-slate-900/50 backdrop-blur-3xl p-12 md:p-20 rounded-[4rem] border border-white/10 shadow-2xl animate-fade-in">
+            <div className="w-full max-w-2xl bg-slate-900/50 backdrop-blur-3xl p-12 md:p-20 rounded-[4rem] border border-white/10 shadow-[0_0_80px_rgba(79,70,229,0.1)] animate-fade-in">
                 <div className="flex flex-col items-center mb-16 text-center">
                     <div className="w-20 h-20 bg-indigo-600 rounded-[2rem] flex items-center justify-center shadow-2xl mb-8 rotate-3"><Sparkles className="text-white" size={40} /></div>
-                    <h1 className="text-5xl font-serif font-black text-white mb-4 italic tracking-tight uppercase">Strategic Engine</h1>
-                    <p className="text-slate-500 font-black text-[10px] uppercase tracking-[0.5em] italic">Intelligence Metaphysics</p>
+                    <h1 className="text-5xl font-serif font-black text-white mb-4 italic tracking-tight">東西命理科學顧問</h1>
+                    <p className="text-slate-500 font-black text-[10px] uppercase tracking-[0.5em] opacity-80 italic">A.I. STRATEGY ENGINE</p>
                 </div>
                 <form onSubmit={(e) => { e.preventDefault(); onStart(formData); }} className="space-y-10">
                     <div className="space-y-3">
-                        <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">諮詢者姓名</label>
-                        <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="輸入姓名" className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-xl" />
+                        <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">諮詢者全名</label>
+                        <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="輸入姓名" className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-xl transition-all" />
                     </div>
                     <div className="grid grid-cols-2 gap-8">
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">陽曆日期</label>
-                            <input required type="date" value={formData.birthDate} onChange={e => setFormData({ ...formData, birthDate: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white text-lg" style={{colorScheme: 'dark'}} />
+                            <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">出生日期</label>
+                            <input required type="date" value={formData.birthDate} onChange={e => setFormData({ ...formData, birthDate: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-lg transition-all" style={{colorScheme: 'dark'}} />
                         </div>
                         <div className="space-y-3">
                             <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-6">出生時辰</label>
-                            <input required type="time" value={formData.birthTime} onChange={e => setFormData({ ...formData, birthTime: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white text-lg" style={{colorScheme: 'dark'}} />
+                            <input required type="time" value={formData.birthTime} onChange={e => setFormData({ ...formData, birthTime: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-[2rem] px-10 py-6 text-white outline-none focus:border-indigo-500/50 text-lg transition-all" style={{colorScheme: 'dark'}} />
                         </div>
                     </div>
                     <div className="flex gap-4">
                         {(['male', 'female'] as const).map(g => (
-                            <button key={g} type="button" onClick={() => setFormData({ ...formData, gender: g })} className={`flex-1 py-6 rounded-[2rem] border font-black text-[11px] uppercase tracking-widest transition-all ${formData.gender === g ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-white/5 border-white/10 text-slate-500'}`}>{g === 'male' ? '乾造 (MALE)' : '坤造 (FEMALE)'}</button>
+                            <button key={g} type="button" onClick={() => setFormData({ ...formData, gender: g })} className={`flex-1 py-6 rounded-[2rem] border font-black text-[11px] uppercase tracking-[0.2em] transition-all ${formData.gender === g ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg' : 'bg-white/5 border-white/10 text-slate-500'}`}>{g === 'male' ? '乾造 (MALE)' : '坤造 (FEMALE)'}</button>
                         ))}
                     </div>
-                    <button type="submit" className="w-full bg-white text-slate-950 py-7 rounded-[2.5rem] font-black text-xl uppercase tracking-widest flex items-center justify-center gap-4 hover:scale-[1.03] transition-all shadow-2xl mt-4">進入解析系統 <ArrowRight size={24} /></button>
+                    <button type="submit" className="w-full bg-white text-slate-950 py-7 rounded-[2.5rem] font-black text-xl uppercase tracking-widest flex items-center justify-center gap-4 hover:scale-[1.03] active:scale-95 transition-all shadow-2xl mt-4">開啟命運解析 <ArrowRight size={24} /></button>
                 </form>
             </div>
         </div>
@@ -476,10 +460,10 @@ const ZiweiChart = ({ chart, onEdit }: { chart: ChartData, onEdit: () => void })
             ))}
             <div className="col-start-2 col-end-4 row-start-2 row-end-4 flex flex-col items-center justify-center text-center p-10 bg-slate-900/90 rounded-[3rem] border border-white/10 z-20 shadow-2xl">
                 <div className="w-20 h-20 rounded-[2.5rem] bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center border border-white/20 shadow-2xl mb-8 rotate-3"><Compass className="text-white" size={40} /></div>
-                <h2 className="text-3xl md:text-5xl font-serif font-black text-white mb-3 italic">{chart.profile.name}</h2>
+                <h2 className="text-3xl md:text-5xl font-serif font-black text-white mb-3 italic tracking-tighter">{chart.profile.name}</h2>
                 <div className="flex gap-3 mb-8">
-                    <span className="text-[10px] bg-indigo-50/10 text-indigo-300 px-4 py-1 rounded-full font-black uppercase tracking-widest border border-indigo-500/30">{chart.ziwei.animal}年</span>
-                    <span className="text-[10px] bg-amber-50/10 text-amber-300 px-4 py-1 rounded-full font-black uppercase tracking-widest border border-amber-500/30">{chart.western.zodiac}</span>
+                    <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-4 py-1 rounded-full font-black uppercase tracking-widest border border-indigo-500/30">{chart.ziwei.animal}年</span>
+                    <span className="text-[10px] bg-amber-500/20 text-amber-300 px-4 py-1 rounded-full font-black uppercase tracking-widest border border-indigo-500/30">{chart.western.zodiac}</span>
                 </div>
                 <button onClick={onEdit} className="p-4 bg-white/5 hover:bg-white/10 text-slate-400 rounded-full border border-white/10 transition-all"><Edit3 size={20} /></button>
             </div>
