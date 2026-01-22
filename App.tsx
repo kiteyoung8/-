@@ -39,8 +39,8 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
     const reportData = messages.filter(m => m.data);
 
     return (
-        <div id={id} className="bg-white text-slate-900" style={{ width: '794px', margin: '0', padding: '0', boxSizing: 'border-box', fontFamily: 'serif', overflow: 'hidden' }}>
-            {/* 第 1 頁：封面 (強制獨立分頁) */}
+        <div id={id} className="bg-white text-slate-900" style={{ width: '794px', margin: '0', padding: '0', boxSizing: 'border-box', fontFamily: 'serif', overflow: 'hidden', backgroundColor: '#ffffff' }}>
+            {/* 第 1 頁：封面 */}
             <div className="pdf-page-cover flex flex-col items-center justify-center text-center relative" style={{ height: '1120px', width: '794px', pageBreakAfter: 'always', backgroundColor: '#ffffff', padding: '0 80px', boxSizing: 'border-box' }}>
                 <div className="w-full border-t-4 border-b-4 border-indigo-600 py-24 relative flex flex-col items-center">
                     <div className="absolute -top-5 bg-white px-8 py-1 text-indigo-600 text-[14px] font-black tracking-[0.5em] uppercase border-2 border-indigo-600 rounded-full whitespace-nowrap">
@@ -72,7 +72,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                 </div>
             </div>
 
-            {/* 第 2 頁開始：內容區域 (使用 break-inside: avoid 確保不被攔腰切斷) */}
+            {/* 內容區塊：強制不被分頁切斷 */}
             <div className="p-16 space-y-20" style={{ width: '794px', boxSizing: 'border-box', backgroundColor: '#ffffff' }}>
                 {reportData.map((m, idx) => (
                     <div key={idx} className="analysis-case-container border-b border-slate-100 pb-20 last:border-0" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', display: 'block' }}>
@@ -215,7 +215,7 @@ export const App = () => {
             console.error("Query Error:", err);
             setMessages(p => [...p, { 
                 type: 'error', 
-                content: "網路波動或 AI 思考過久。請嘗試簡化提問後再次諮詢。",
+                content: "分析中斷，可能是網路波動。請再試一次。",
                 question: queryText
             }]);
         } finally {
@@ -229,31 +229,27 @@ export const App = () => {
         if (!element || !chart) return;
 
         setIsExporting(true);
-        // 給予一點時間讓渲染完全就緒
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         const opt = {
             margin: 0,
-            filename: `戰略命理報告_${chart.profile.name}.pdf`,
+            filename: `戰略分析報告_${chart.profile.name}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { 
                 scale: 2, 
                 useCORS: true, 
-                letterRendering: true,
-                scrollY: 0, // 強制從頂部開始截圖，解決空白頁問題
+                scrollY: 0, // 強制從最頂端截圖，修復位移空白問題
                 scrollX: 0
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { 
-                mode: ['css', 'legacy']
-            }
+            pagebreak: { mode: ['css', 'legacy'] }
         };
 
         try {
             await html2pdf().from(element).set(opt).save();
         } catch (error) {
             console.error('PDF Export Error:', error);
-            alert("匯出 PDF 時發生錯誤，請確認網路與權限。");
+            alert("匯出 PDF 時發生錯誤。");
         } finally {
             setIsExporting(false);
         }
@@ -328,34 +324,14 @@ export const App = () => {
                                                     </div>
                                                     {m.data.executive_summary.description}
                                                 </div>
-                                                {m.data.strategic_solutions && (
-                                                    <div className="space-y-6">
-                                                        <h3 className="text-lg font-black text-amber-400 uppercase tracking-[0.2em] flex items-center gap-2"><Rocket size={18}/> 戰略建議方案</h3>
-                                                        <div className="grid grid-cols-1 gap-4">
-                                                            {m.data.strategic_solutions.map((sol, idx) => (
-                                                                <div key={idx} className="bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-all">
-                                                                    <div className="flex justify-between items-center mb-2">
-                                                                        <h4 className="text-white font-bold text-lg">{sol.title}</h4>
-                                                                        <span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${sol.priority === 'High' ? 'bg-red-500/20 text-red-400' : 'bg-indigo-500/10 text-indigo-400'}`}>{sol.priority}</span>
-                                                                    </div>
-                                                                    <p className="text-slate-400 text-sm leading-relaxed mb-3">{sol.description}</p>
-                                                                    <p className="text-emerald-400 text-xs font-bold flex items-center gap-2"><CheckCircle2 size={14}/> 核心影響：{sol.impact}</p>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
                                             </div>
                                         </div>
                                     ) : m.type === 'error' ? (
                                         <div className="flex justify-center">
                                             <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-8 py-6 rounded-3xl text-sm font-bold flex flex-col items-center gap-4 max-w-lg text-center">
-                                                <div className="flex items-center gap-3 text-red-500">
-                                                    <AlertCircle size={24}/> 
-                                                    <span className="text-lg font-black">分析中斷</span>
-                                                </div>
+                                                <AlertCircle size={24} className="text-red-500 mb-2"/>
                                                 <p className="text-slate-400 leading-relaxed font-medium">{m.content}</p>
-                                                <button onClick={() => m.question && performQuery(m.question)} className="px-6 py-2 bg-red-500 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-red-600">點此重新嘗試</button>
+                                                <button onClick={() => m.question && performQuery(m.question)} className="px-6 py-2 bg-red-500 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-red-600 mt-4">點此重新嘗試</button>
                                             </div>
                                         </div>
                                     ) : null}
@@ -370,7 +346,7 @@ export const App = () => {
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <button 
-                                            onClick={() => performQuery("是否深入解析？（請啟動 Pro 思考模組，以「極致白話」進行多維度邏輯推理與長期佈局解析）", true)}
+                                            onClick={() => performQuery("是否深入解析？（請啟動 Pro 思考模組，以「最直白的語言」深度拆解命盤能量與長遠行動方針）", true)}
                                             className="p-8 bg-indigo-600/10 border-2 border-indigo-500/40 rounded-[2.5rem] text-indigo-100 flex flex-col items-start gap-4 hover:bg-indigo-600/20 transition-all group relative overflow-hidden shadow-[0_0_40px_rgba(79,70,229,0.1)]"
                                         >
                                             <div className="absolute top-4 right-4 text-indigo-500/20 group-hover:text-indigo-500/40 transition-colors">
@@ -381,26 +357,23 @@ export const App = () => {
                                                 🔮 是否深度白話解析？
                                             </div>
                                             <p className="text-[14px] text-indigo-300/80 leading-relaxed text-left font-serif italic">
-                                                啟動 Pro 思考模組。我將完全摒棄術語，改用最直白的現代語言拆解能量，提供您看一眼就能立刻決策的行動指南。
+                                                啟動 Pro 思考模組。我將完全摒棄術語，用最易懂的語言拆解能量，提供您看一眼就能立刻執行的人生意圖導引。
                                             </p>
-                                            <div className="flex items-center gap-2 text-[10px] font-black text-indigo-400 uppercase tracking-widest mt-2 border-t border-indigo-500/20 pt-4 w-full">
-                                                <Brain size={14}/> 深度解析模式 (白話導向)
-                                            </div>
                                         </button>
 
                                         <div className="flex flex-col gap-4">
                                             <button 
-                                                onClick={() => performQuery("請針對當前的戰略方針，列出未來三個月具體的行動時間表")}
+                                                onClick={() => performQuery("請列出此戰略在接下來三個月的具體行動時間表建議")}
                                                 className="px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold flex items-center justify-between hover:bg-indigo-600/20 hover:border-indigo-500/30 transition-all group"
                                             >
                                                 <span>行動方案：未來三月日程</span>
                                                 <ArrowRight size={16} className="text-slate-500 group-hover:text-indigo-400 transform group-hover:translate-x-1 transition-all" />
                                             </button>
                                             <button 
-                                                onClick={() => performQuery("根據命盤配置，我該如何具體調整心態或行為來避開潛在風險？")}
+                                                onClick={() => performQuery("根據命盤配置，我該如何具體調整心態或行為來規避風險？")}
                                                 className="px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold flex items-center justify-between hover:bg-indigo-600/20 hover:border-indigo-500/30 transition-all group"
                                             >
-                                                <span>風險規避：具體避險指南</span>
+                                                <span>風險規避：白話避險建議</span>
                                                 <ArrowRight size={16} className="text-slate-500 group-hover:text-indigo-400 transform group-hover:translate-x-1 transition-all" />
                                             </button>
                                         </div>
@@ -412,28 +385,10 @@ export const App = () => {
                                 <div className="flex flex-col gap-6 animate-fade-in">
                                     <div className="bg-slate-900/60 backdrop-blur-3xl p-10 md:p-14 rounded-[3.5rem] border border-white/5 shadow-2xl space-y-8">
                                         <div className="flex items-center gap-6">
-                                            <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg animate-pulse">
-                                                <Loader2 className="animate-spin text-white" size={28}/>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <p className={`text-xl font-serif font-black italic tracking-tight transition-all duration-500 ${THINKING_STEPS[thinkingStep].color}`}>
-                                                    {THINKING_STEPS[thinkingStep].label}...
-                                                </p>
-                                                <div className="flex items-center gap-2 text-slate-500 text-xs font-black uppercase tracking-widest">
-                                                    {THINKING_STEPS[thinkingStep].icon} 高速引擎正在處理
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {streamingTitle && (
-                                            <div className="pt-6 border-t border-white/5 animate-fade-in">
-                                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">核心戰略預覽 (Streaming)...</p>
-                                                <h3 className="text-2xl font-serif font-black text-indigo-400 italic">「{streamingTitle}」</h3>
-                                            </div>
-                                        )}
-                                        <div className="grid grid-cols-5 gap-2 pt-4">
-                                            {THINKING_STEPS.map((_, i) => (
-                                                <div key={i} className={`h-1 rounded-full transition-all duration-700 ${i === thinkingStep ? 'bg-indigo-500 w-full' : 'bg-white/10 w-full opacity-30'}`}></div>
-                                            ))}
+                                            <Loader2 className="animate-spin text-indigo-500" size={28}/>
+                                            <p className={`text-xl font-serif font-black italic tracking-tight transition-all duration-500 ${THINKING_STEPS[thinkingStep].color}`}>
+                                                {THINKING_STEPS[thinkingStep].label}...
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -445,7 +400,7 @@ export const App = () => {
                     <div className="w-full flex flex-col items-center gap-10 py-10 bg-white/5 rounded-[4rem]">
                         <div className="text-center space-y-2">
                             <h2 className="text-2xl font-serif font-black italic text-white">報告預覽區</h2>
-                            <p className="text-slate-400 text-xs">下載 PDF 以獲取最佳排版。封面將自動獨立，內容主題會保持完整，不會在中間被切斷。</p>
+                            <p className="text-slate-400 text-xs">下載 PDF 以獲取最佳排版效果（A4 比例，內容不切斷）。</p>
                         </div>
                         <div className="shadow-2xl origin-top bg-white overflow-hidden rounded-xl border border-slate-200" style={{ transform: 'scale(0.8)', width: '794px' }}>
                             <ProfessionalPDFTemplate id="report-preview-view" messages={messages} chart={chart} />
@@ -456,16 +411,16 @@ export const App = () => {
 
             {!isReportMode && (
                 <div className="fixed bottom-0 left-0 right-0 p-8 md:p-12 bg-gradient-to-t from-black via-black/95 to-transparent z-40">
-                    <div className="max-w-4xl mx-auto space-y-6">
+                    <div className="max-w-4xl mx-auto">
                         <form onSubmit={(e) => { e.preventDefault(); performQuery(input); }} className="relative group">
-                            <input value={input} onChange={e => setInput(e.target.value)} disabled={isLoading} placeholder="輸入提問 (例如：2026 創業方向、感情佈局...)" className="w-full bg-slate-900/90 backdrop-blur-3xl border border-white/10 rounded-full px-12 py-7 text-white text-xl outline-none focus:border-indigo-500/50 pr-28 shadow-2xl transition-all font-serif" />
+                            <input value={input} onChange={e => setInput(e.target.value)} disabled={isLoading} placeholder="輸入提問 (例如：2026 整體運勢、財運佈局...)" className="w-full bg-slate-900/90 backdrop-blur-3xl border border-white/10 rounded-full px-12 py-7 text-white text-xl outline-none focus:border-indigo-500/50 pr-28 shadow-2xl transition-all font-serif" />
                             <button type="submit" disabled={!input.trim() || isLoading} className="absolute right-4 top-4 bottom-4 aspect-square bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-500 transition-all active:scale-90 disabled:opacity-30"><ChevronRight size={32} /></button>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* 用於 PDF 導出的隱藏內容容器 */}
+            {/* 導出用的隱藏節點 */}
             <div className="fixed" style={{ top: '-9999px', left: '-9999px', zIndex: -1000 }}>
                 <div style={{ width: '794px', backgroundColor: '#ffffff' }}>
                     {chart && <ProfessionalPDFTemplate id="report-pdf-export-source" messages={messages} chart={chart} />}
