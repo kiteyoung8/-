@@ -4,8 +4,8 @@ import {
   Sparkles, Brain, Edit3, Loader2, RefreshCw, Download, 
   ArrowRight, ChevronRight,
   Compass, BookOpen, Rocket, Target, CheckCircle2,
-  HeartPulse, Users, Wallet, Microscope, ShieldCheck, Search,
-  AlertCircle
+  HeartPulse, Users, Wallet, ShieldCheck, Search,
+  AlertCircle, MessageSquarePlus, Zap
 } from 'lucide-react';
 import { calculateChart } from './MetaphysicsEngine';
 import { callGeminiAPI } from './geminiService'; 
@@ -14,11 +14,11 @@ import { ChartData, Message, FormData as AppFormData, AIResponse } from './types
 declare const html2pdf: any;
 
 const GUIDANCE_QUESTIONS = [
-    { label: "命盤解析", icon: <Brain size={20}/>, query: "請根據我的命盤格局，進行全面的深度解析，包含主星特質、核心格局大局以及天賦潛能。" },
-    { label: "2026整體運勢", icon: <Sparkles size={20}/>, query: "請深度分析 2026 丙午年的整體運勢走勢，包含流年四化對我的具體宮位衝擊與機會。" },
-    { label: "財運分析", icon: <Wallet size={20}/>, query: "分析我 2026 年的財帛宮與祿存星動向，針對財富佈局、投資避險給予具體戰略建議。" },
-    { label: "人際博弈", icon: <Users size={20}/>, query: "從交友宮與父母宮角度，分析我 2026 年的人際博弈、貴人運勢以及職場社交管理策略。" },
-    { label: "健康提醒", icon: <HeartPulse size={20}/>, query: "分析我 2026 年的疾厄宮狀況，針對潛在的健康風險、身心平衡與生活節奏調整給予建議。" }
+    { label: "命盤解析", icon: <Brain size={20}/>, query: "請解析我的命盤格局" },
+    { label: "2026運勢", icon: <Sparkles size={20}/>, query: "分析 2026 整體運勢" },
+    { label: "財運分析", icon: <Wallet size={20}/>, query: "分析 2026 財運佈局" },
+    { label: "人際博弈", icon: <Users size={20}/>, query: "分析 2026 人際與貴人" },
+    { label: "健康提醒", icon: <HeartPulse size={20}/>, query: "分析 2026 健康狀況" }
 ];
 
 const INITIAL_MESSAGES: Message[] = [{ 
@@ -31,7 +31,7 @@ const THINKING_STEPS = [
     { label: "啟動戰略引擎", icon: <Rocket size={18}/>, color: "text-indigo-400" },
     { label: "解析 2026 丙午年流年四化軌跡", icon: <Sparkles size={18}/>, color: "text-amber-400" },
     { label: "深度對齊命盤宮位星曜配置", icon: <Compass size={18}/>, color: "text-blue-400" },
-    { label: "檢索 Google Search 全球趨勢", icon: <Search size={18}/>, color: "text-emerald-400" },
+    { label: "啟動思考模組進行多維推理", icon: <Brain size={18}/>, color: "text-purple-400" },
     { label: "構建客製化戰略方案", icon: <ShieldCheck size={18}/>, color: "text-rose-400" }
 ];
 
@@ -39,8 +39,9 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
     const reportData = messages.filter(m => m.data);
 
     return (
-        <div id={id} className="bg-white text-slate-900" style={{ width: '794px', minHeight: '1123px', padding: '0', margin: '0', boxSizing: 'border-box', fontFamily: 'serif', display: 'block', overflow: 'hidden' }}>
-            <div className="flex flex-col items-center justify-center text-center relative" style={{ height: '1120px', width: '794px', pageBreakAfter: 'always', backgroundColor: '#ffffff', padding: '0 80px', boxSizing: 'border-box' }}>
+        <div id={id} className="bg-white text-slate-900" style={{ width: '794px', margin: '0', padding: '0', boxSizing: 'border-box', fontFamily: 'serif' }}>
+            {/* 第 1 頁：封面 (強制獨立分頁) */}
+            <div className="pdf-page-cover flex flex-col items-center justify-center text-center relative" style={{ height: '1120px', width: '794px', pageBreakAfter: 'always', backgroundColor: '#ffffff', padding: '0 80px', boxSizing: 'border-box' }}>
                 <div className="w-full border-t-4 border-b-4 border-indigo-600 py-24 relative flex flex-col items-center">
                     <div className="absolute -top-5 bg-white px-8 py-1 text-indigo-600 text-[14px] font-black tracking-[0.5em] uppercase border-2 border-indigo-600 rounded-full whitespace-nowrap">
                         Strategic Destiny Analysis
@@ -70,63 +71,68 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                     <p className="text-[11px] text-slate-300 font-mono tracking-[0.8em] uppercase">Intelligence by Gemini AI System</p>
                 </div>
             </div>
-            <div className="p-20 space-y-24" style={{ width: '794px', boxSizing: 'border-box' }}>
+
+            {/* 第 2 頁開始：內容區域 (確保區塊不被切斷) */}
+            <div className="p-16 space-y-16" style={{ width: '794px', boxSizing: 'border-box' }}>
                 {reportData.map((m, idx) => (
-                    <div key={idx} className="border-b border-slate-100 pb-20 last:border-0">
-                        <div className="flex items-center gap-8 mb-12" style={{ pageBreakInside: 'avoid' }}>
-                            <span className="text-9xl font-black text-slate-100 leading-none" style={{ fontFamily: 'sans-serif' }}>{idx + 1}</span>
-                            <div className="pt-6">
-                                <p className="text-[12px] font-black text-indigo-600 tracking-[0.4em] uppercase mb-2">STRATEGIC ANALYSIS CASE</p>
-                                <h2 className="text-4xl font-bold text-slate-800 leading-tight">{m.question}</h2>
+                    <div key={idx} className="analysis-case-container border-b border-slate-100 pb-16 last:border-0" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                        <div className="flex items-center gap-6 mb-10">
+                            <span className="text-8xl font-black text-slate-100 leading-none" style={{ fontFamily: 'sans-serif' }}>{idx + 1}</span>
+                            <div className="pt-4">
+                                <p className="text-[10px] font-black text-indigo-600 tracking-[0.4em] uppercase mb-1">STRATEGIC ANALYSIS CASE</p>
+                                <h2 className="text-3xl font-bold text-slate-800 leading-tight">{m.question}</h2>
                             </div>
                         </div>
-                        <div className="space-y-10">
+                        
+                        <div className="executive-summary-section space-y-8">
                             <div style={{ pageBreakInside: 'avoid' }}>
-                                <h3 className="text-5xl font-black italic text-slate-900 border-l-8 border-indigo-600 pl-10 leading-tight mb-8">
+                                <h3 className="text-4xl font-black italic text-slate-900 border-l-8 border-indigo-600 pl-8 leading-tight mb-6">
                                     {m.data?.executive_summary.title}
                                 </h3>
-                                <div className="flex items-center gap-6 mb-8">
-                                    <span className="bg-indigo-600 text-white text-[11px] font-black px-6 py-2 rounded-full uppercase tracking-[0.2em] shadow-lg">
+                                <div className="mb-6">
+                                    <span className="bg-indigo-600 text-white text-[10px] font-black px-5 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-md">
                                         核心方針：{m.data?.executive_summary.direction}
                                     </span>
                                 </div>
                             </div>
-                            <p className="text-xl text-slate-700 leading-[1.8] text-justify whitespace-pre-wrap font-serif italic" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
+                            <p className="text-lg text-slate-700 leading-[1.7] text-justify whitespace-pre-wrap font-serif italic border-l border-slate-100 pl-8">
                                 {m.data?.executive_summary.description}
                             </p>
                         </div>
+
                         {m.data?.strategic_solutions && (
-                            <div className="mt-16 space-y-8">
-                                <h4 className="text-[12px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-3 mb-6">
-                                    <Rocket size={20}/> 戰略執行核心方案
+                            <div className="mt-12 space-y-6">
+                                <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-4">
+                                    <Rocket size={16}/> 戰略執行核心方案
                                 </h4>
-                                <div className="grid grid-cols-1 gap-8">
+                                <div className="grid grid-cols-1 gap-6">
                                     {m.data.strategic_solutions.map((sol, sIdx) => (
-                                        <div key={sIdx} className="bg-slate-50 p-10 rounded-[2.5rem] border border-slate-200 shadow-sm" style={{ pageBreakInside: 'avoid' }}>
-                                            <div className="flex justify-between items-start mb-6">
-                                                <h5 className="text-2xl font-bold text-slate-900">{sol.title}</h5>
-                                                <span className={`px-6 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest ${sol.priority === 'High' ? 'bg-red-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
+                                        <div key={sIdx} className="bg-slate-50 p-8 rounded-[2rem] border border-slate-200 shadow-sm" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                                            <div className="flex justify-between items-start mb-4">
+                                                <h5 className="text-xl font-bold text-slate-900">{sol.title}</h5>
+                                                <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${sol.priority === 'High' ? 'bg-red-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
                                                     {sol.priority}
                                                 </span>
                                             </div>
-                                            <p className="text-slate-600 mb-8 leading-relaxed text-lg">{sol.description}</p>
-                                            <div className="flex items-center gap-3 pt-6 border-t border-slate-200 text-emerald-600 font-bold text-[13px] uppercase tracking-widest">
-                                                <Target size={18}/> 能量轉換預測：{sol.impact}
+                                            <p className="text-slate-600 mb-6 leading-relaxed text-md">{sol.description}</p>
+                                            <div className="flex items-center gap-2 pt-4 border-t border-slate-200 text-emerald-600 font-bold text-[11px] uppercase tracking-widest">
+                                                <Target size={14}/> 能量轉換預測：{sol.impact}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
-                        <div className="mt-16 space-y-6">
-                            <h4 className="text-[12px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-3 mb-6">
-                                <CheckCircle2 size={20}/> 具體執行清單 (Action Items)
+
+                        <div className="mt-12 space-y-4" style={{ pageBreakInside: 'avoid' }}>
+                            <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-4">
+                                <CheckCircle2 size={16}/> 具體執行清單 (Action Items)
                             </h4>
-                            <div className="space-y-4">
+                            <div className="grid grid-cols-1 gap-3">
                                 {m.data?.actionable_advice.map((adv, aIdx) => (
-                                    <div key={aIdx} className="flex gap-6 p-6 bg-indigo-50/40 border border-indigo-100 rounded-3xl items-start" style={{ pageBreakInside: 'avoid' }}>
-                                        <span className="font-black text-indigo-600 text-[13px] shrink-0 pt-1">[{adv.type}]</span>
-                                        <p className="text-[15px] text-slate-700 font-medium leading-relaxed">{adv.content}</p>
+                                    <div key={aIdx} className="flex gap-4 p-5 bg-indigo-50/40 border border-indigo-100 rounded-2xl items-start">
+                                        <span className="font-black text-indigo-600 text-[11px] shrink-0 pt-0.5">[{adv.type}]</span>
+                                        <p className="text-[14px] text-slate-700 font-medium leading-relaxed">{adv.content}</p>
                                     </div>
                                 ))}
                             </div>
@@ -134,11 +140,13 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                     </div>
                 ))}
             </div>
-            <div className="p-24 text-center border-t border-slate-100" style={{ width: '794px', pageBreakBefore: 'auto' }}>
-                <p className="text-slate-300 font-mono text-[12px] uppercase tracking-[1em] mb-6">
+
+            {/* 結尾 */}
+            <div className="p-16 text-center border-t border-slate-100" style={{ width: '794px', pageBreakInside: 'avoid' }}>
+                <p className="text-slate-300 font-mono text-[10px] uppercase tracking-[1em] mb-4">
                     End of Analysis Report
                 </p>
-                <p className="text-slate-400 text-sm italic font-serif leading-relaxed px-20">
+                <p className="text-slate-400 text-xs italic font-serif leading-relaxed px-16">
                     本報告由東西命理科學顧問 AI 戰略引擎生成。分析結論基於紫微斗數大數據與時間能量概率預測，僅供個人決策與戰略佈局參考。
                 </p>
             </div>
@@ -181,7 +189,7 @@ export const App = () => {
         setIsExporting(false);
     };
 
-    const performQuery = async (queryText: string) => {
+    const performQuery = async (queryText: string, isDeep: boolean = false) => {
         if (!queryText.trim() || isLoading || !chart) return;
         
         setIsReportMode(false);
@@ -200,7 +208,7 @@ export const App = () => {
                         setStreamingTitle(titleMatch[1]);
                     }
                 } catch (e) {}
-            });
+            }, isDeep);
             
             setMessages(p => [...p, { type: 'ai', data, question: queryText }]);
         } catch (err: any) {
@@ -221,13 +229,13 @@ export const App = () => {
         if (!element || !chart) return;
 
         setIsExporting(true);
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         const opt = {
             margin: 0,
             filename: `戰略命理報告_${chart.profile.name}.pdf`,
-            image: { type: 'jpeg', quality: 1.0 },
-            html2canvas: { scale: 2, useCORS: true },
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, letterRendering: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak: { mode: ['css', 'legacy'] }
         };
@@ -241,6 +249,9 @@ export const App = () => {
             setIsExporting(false);
         }
     };
+
+    const lastMsg = messages[messages.length - 1];
+    const showFollowUps = lastMsg && lastMsg.type === 'ai' && !lastMsg.isGreeting && !isLoading;
 
     if (!chart) return <InputForm onStart={(d) => setChart(calculateChart(d))} />;
 
@@ -341,6 +352,37 @@ export const App = () => {
                                     ) : null}
                                 </div>
                             ))}
+
+                            {showFollowUps && (
+                                <div className="flex flex-col gap-6 animate-fade-in border-t border-white/5 pt-10">
+                                    <div className="flex items-center gap-3 text-indigo-400">
+                                        <MessageSquarePlus size={20}/>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">延伸建議諮詢 / Follow-up</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-4">
+                                        <button 
+                                            onClick={() => performQuery("請啟動思考模組，對剛才的解析進行深入多維度的推理與戰略建議", true)}
+                                            className="px-6 py-3 bg-purple-600/20 border border-purple-500/40 rounded-2xl text-purple-300 text-sm font-bold flex items-center gap-3 hover:bg-purple-600/30 transition-all group"
+                                        >
+                                            <Zap size={16} className="group-hover:scale-125 transition-transform"/>
+                                            🔮 啟動思考模組：深入解析
+                                        </button>
+                                        <button 
+                                            onClick={() => performQuery("這份戰略對我接下來三個月的具體行動有何建議？")}
+                                            className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold hover:bg-white/10 transition-all"
+                                        >
+                                            執行細節：未來三月行動建議
+                                        </button>
+                                        <button 
+                                            onClick={() => performQuery("在執行此方案時，我應該特別注意哪些潛在的風險或障礙？")}
+                                            className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold hover:bg-white/10 transition-all"
+                                        >
+                                            風險規避：潛在障礙分析
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
                             {isLoading && (
                                 <div className="flex flex-col gap-6 animate-fade-in">
                                     <div className="bg-slate-900/60 backdrop-blur-3xl p-10 md:p-14 rounded-[3.5rem] border border-white/5 shadow-2xl space-y-8">
@@ -376,8 +418,11 @@ export const App = () => {
                     </>
                 ) : (
                     <div className="w-full flex flex-col items-center gap-10 py-10 bg-white/5 rounded-[4rem]">
-                        <div className="text-center space-y-2"><h2 className="text-2xl font-serif font-black italic text-white">報告預覽區</h2><p className="text-slate-400 text-xs">下載 PDF 以獲取最佳閱讀體驗。</p></div>
-                        <div className="shadow-2xl transform scale-[0.6] md:scale-90 origin-top bg-white border border-slate-200">
+                        <div className="text-center space-y-2">
+                            <h2 className="text-2xl font-serif font-black italic text-white">報告預覽區</h2>
+                            <p className="text-slate-400 text-xs">下載 PDF 以獲取最佳閱讀體驗。封面將自動獨立分頁。</p>
+                        </div>
+                        <div className="shadow-2xl origin-top bg-white overflow-hidden rounded-xl border border-slate-200" style={{ transform: 'scale(0.8)', width: '794px' }}>
                             <ProfessionalPDFTemplate id="report-preview-view" messages={messages} chart={chart} />
                         </div>
                     </div>
@@ -395,7 +440,7 @@ export const App = () => {
                 </div>
             )}
 
-            <div className="fixed" style={{ top: '0', left: '0', zIndex: -1000, visibility: 'hidden', pointerEvents: 'none' }}>
+            <div className="fixed" style={{ top: '-9999px', left: '-9999px', zIndex: -1000 }}>
                 <div style={{ width: '794px', backgroundColor: '#ffffff' }}>
                     {chart && <ProfessionalPDFTemplate id="report-pdf-export-source" messages={messages} chart={chart} />}
                 </div>
@@ -462,8 +507,8 @@ const ZiweiChart = ({ chart, onEdit }: { chart: ChartData, onEdit: () => void })
                 <div className="w-20 h-20 rounded-[2.5rem] bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center border border-white/20 shadow-2xl mb-8 rotate-3"><Compass className="text-white" size={40} /></div>
                 <h2 className="text-3xl md:text-5xl font-serif font-black text-white mb-3 italic tracking-tighter">{chart.profile.name}</h2>
                 <div className="flex gap-3 mb-8">
-                    <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-4 py-1 rounded-full font-black uppercase tracking-widest border border-indigo-500/30">{chart.ziwei.animal}年</span>
-                    <span className="text-[10px] bg-amber-500/20 text-amber-300 px-4 py-1 rounded-full font-black uppercase tracking-widest border border-indigo-500/30">{chart.western.zodiac}</span>
+                    <span className="text-[10px] bg-indigo-50/10 text-indigo-300 px-4 py-1 rounded-full font-black uppercase tracking-widest border border-indigo-500/30">{chart.ziwei.animal}年</span>
+                    <span className="text-[10px] bg-amber-50/10 text-amber-300 px-4 py-1 rounded-full font-black uppercase tracking-widest border border-amber-500/30">{chart.western.zodiac}</span>
                 </div>
                 <button onClick={onEdit} className="p-4 bg-white/5 hover:bg-white/10 text-slate-400 rounded-full border border-white/10 transition-all"><Edit3 size={20} /></button>
             </div>
