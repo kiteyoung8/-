@@ -6,7 +6,8 @@ export const callGeminiAPI = async (
     chartData: ChartData, 
     userQuery: string, 
     history: Message[] = [],
-    onStream?: (chunk: string) => void
+    onStream?: (chunk: string) => void,
+    isDeep: boolean = false
 ): Promise<AIResponse> => {
     const apiKey = process.env.API_KEY;
     
@@ -27,10 +28,11 @@ export const callGeminiAPI = async (
     
     ## 核心任務
     你是一位融合紫微斗數大數據與現代戰略管理的高端顧問。你必須根據諮詢者的「完整命盤數據」來回答問題。
+    ${isDeep ? "### 深度思考模式已啟動：請進行多維度推理，考慮大限、流年、小限與流月之交疊影響，並提供更具洞察力的戰略佈局。" : ""}
     你的回覆必須完全遵守 JSON 格式，且包含「strategic_solutions」陣列。
     
     ## 分析準則
-    - **配合命盤解析**：方案內容必須引用命盤中的具體星曜或宮位關係（例如：利用官祿宮的XX星能量、避開廉貞化忌的衝擊）。
+    - **配合命盤解析**：方案內容必須引用命盤中的具體星曜或宮位關係。
     - **流年四化 (2026 丙午)**：天同化祿、天機化權、文昌化科、廉貞化忌。
     - **文風**：專業、深沉、冷靜、果斷。
     - **語言**：繁體中文。
@@ -104,11 +106,10 @@ export const callGeminiAPI = async (
         required: ["executive_summary", "zodiac_fortune", "strategic_solutions", "metaphysical_perspective", "scientific_decoding", "actionable_advice"]
     };
 
-    // 優化對話歷史：將過往的 JSON 數據簡化為摘要，減少 Token 負擔並防止模型解析混亂
     const contents = history.filter(m => m.type !== 'error' && !m.isGreeting).map(m => {
         let textContent = m.content || "";
         if (m.data) {
-            textContent = `歷史分析標題：${m.data.executive_summary.title}。核心方向：${m.data.executive_summary.direction}。`;
+            textContent = `歷史分析：${m.data.executive_summary.title}。${m.data.executive_summary.direction}`;
         }
         return {
             role: m.type === 'user' ? 'user' : 'model',
@@ -116,18 +117,19 @@ export const callGeminiAPI = async (
         };
     });
 
-    contents.push({ role: 'user', parts: [{ text: `諮詢問題：${userQuery}\n請輸出完整的 JSON 結構。` }] });
+    contents.push({ role: 'user', parts: [{ text: `諮詢問題：${userQuery}` }] });
 
     try {
-        // 切換為 gemini-3-flash-preview：更適合高速、大體量 JSON 生成與搜尋任務
+        const modelName = isDeep ? "gemini-3-pro-preview" : "gemini-3-flash-preview";
         const stream = await ai.models.generateContentStream({
-            model: "gemini-3-flash-preview",
+            model: modelName,
             contents,
             config: {
                 systemInstruction,
                 responseMimeType: "application/json",
                 responseSchema,
-                tools: [{ googleSearch: {} }]
+                tools: [{ googleSearch: {} }],
+                ...(isDeep && { thinkingConfig: { thinkingBudget: 32768 } })
             },
         });
 
@@ -140,7 +142,6 @@ export const callGeminiAPI = async (
             }
         }
         
-        // 確保移除可能存在的 Markdown 標記
         const cleanedText = fullText.replace(/```json/g, "").replace(/```/g, "").trim();
         return JSON.parse(cleanedText) as AIResponse;
     } catch (error: any) {
