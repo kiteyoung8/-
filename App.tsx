@@ -39,9 +39,9 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
     const reportData = messages.filter(m => m.data);
 
     return (
-        <div id={id} className="bg-white text-slate-900" style={{ width: '794px', margin: '0', padding: '0', boxSizing: 'border-box', fontFamily: 'serif' }}>
-            {/* 第 1 頁：封面 (強制獨立分頁且無外部邊距影響) */}
-            <div className="pdf-page-cover flex flex-col items-center justify-center text-center relative" style={{ height: '1120px', width: '794px', pageBreakAfter: 'always', backgroundColor: '#ffffff', padding: '0 80px', boxSizing: 'border-box', margin: '0' }}>
+        <div id={id} className="bg-white text-slate-900" style={{ width: '794px', margin: '0', padding: '0', boxSizing: 'border-box', fontFamily: 'serif', overflow: 'hidden' }}>
+            {/* 第 1 頁：封面 (強制獨立分頁) */}
+            <div className="pdf-page-cover flex flex-col items-center justify-center text-center relative" style={{ height: '1120px', width: '794px', pageBreakAfter: 'always', backgroundColor: '#ffffff', padding: '0 80px', boxSizing: 'border-box' }}>
                 <div className="w-full border-t-4 border-b-4 border-indigo-600 py-24 relative flex flex-col items-center">
                     <div className="absolute -top-5 bg-white px-8 py-1 text-indigo-600 text-[14px] font-black tracking-[0.5em] uppercase border-2 border-indigo-600 rounded-full whitespace-nowrap">
                         Strategic Destiny Analysis
@@ -72,10 +72,10 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                 </div>
             </div>
 
-            {/* 第 2 頁開始：內容區域 (使用 avoid 避免主題切斷) */}
-            <div className="p-16 space-y-20" style={{ width: '794px', boxSizing: 'border-box' }}>
+            {/* 第 2 頁開始：內容區域 (使用 break-inside: avoid 確保不被攔腰切斷) */}
+            <div className="p-16 space-y-20" style={{ width: '794px', boxSizing: 'border-box', backgroundColor: '#ffffff' }}>
                 {reportData.map((m, idx) => (
-                    <div key={idx} className="analysis-case-container border-b border-slate-100 pb-20 last:border-0" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                    <div key={idx} className="analysis-case-container border-b border-slate-100 pb-20 last:border-0" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', display: 'block' }}>
                         <div className="flex items-center gap-6 mb-10">
                             <span className="text-8xl font-black text-slate-100 leading-none" style={{ fontFamily: 'sans-serif' }}>{idx + 1}</span>
                             <div className="pt-4">
@@ -107,7 +107,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                                 </h4>
                                 <div className="grid grid-cols-1 gap-6">
                                     {m.data.strategic_solutions.map((sol, sIdx) => (
-                                        <div key={sIdx} className="bg-slate-50 p-8 rounded-[2rem] border border-slate-200 shadow-sm" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                                        <div key={sIdx} className="bg-slate-50 p-8 rounded-[2rem] border border-slate-200 shadow-sm" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', display: 'block' }}>
                                             <div className="flex justify-between items-start mb-4">
                                                 <h5 className="text-xl font-bold text-slate-900">{sol.title}</h5>
                                                 <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${sol.priority === 'High' ? 'bg-red-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
@@ -124,7 +124,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
                             </div>
                         )}
 
-                        <div className="mt-12 space-y-4" style={{ pageBreakInside: 'avoid' }}>
+                        <div className="mt-12 space-y-4" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', display: 'block' }}>
                             <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-4">
                                 <CheckCircle2 size={16}/> 具體執行清單 (Action Items)
                             </h4>
@@ -142,7 +142,7 @@ const ProfessionalPDFTemplate = ({ messages, chart, id }: { messages: Message[],
             </div>
 
             {/* 結尾 */}
-            <div className="p-16 text-center border-t border-slate-100" style={{ width: '794px', pageBreakInside: 'avoid' }}>
+            <div className="p-16 text-center border-t border-slate-100" style={{ width: '794px', pageBreakInside: 'avoid', backgroundColor: '#ffffff' }}>
                 <p className="text-slate-300 font-mono text-[10px] uppercase tracking-[1em] mb-4">
                     End of Analysis Report
                 </p>
@@ -240,13 +240,12 @@ export const App = () => {
                 scale: 2, 
                 useCORS: true, 
                 letterRendering: true,
-                scrollY: 0, // 強制從頂部截圖，防止偏移產生的空白
+                scrollY: 0, // 強制從頂部開始截圖，解決空白頁問題
                 scrollX: 0
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak: { 
-                mode: ['css', 'legacy'],
-                after: '.pdf-page-cover' // 確保封面後強製分頁
+                mode: ['css', 'legacy']
             }
         };
 
@@ -254,7 +253,7 @@ export const App = () => {
             await html2pdf().from(element).set(opt).save();
         } catch (error) {
             console.error('PDF Export Error:', error);
-            alert("匯出 PDF 時發生錯誤，請確認網路環境。");
+            alert("匯出 PDF 時發生錯誤，請確認網路與權限。");
         } finally {
             setIsExporting(false);
         }
@@ -367,11 +366,11 @@ export const App = () => {
                                 <div className="flex flex-col gap-8 animate-fade-in border-t border-white/5 pt-12">
                                     <div className="flex items-center gap-3 text-indigo-400">
                                         <MessageSquarePlus size={20}/>
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">深入解析選項 / Pro Analysis</span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">深度白話解析選項 / Pro Analysis</span>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <button 
-                                            onClick={() => performQuery("是否深入解析？（請啟動 Pro 思考模組，以易懂的白話文進行多維度邏輯推理與長期佈局解析）", true)}
+                                            onClick={() => performQuery("是否深入解析？（請啟動 Pro 思考模組，以「極致白話」進行多維度邏輯推理與長期佈局解析）", true)}
                                             className="p-8 bg-indigo-600/10 border-2 border-indigo-500/40 rounded-[2.5rem] text-indigo-100 flex flex-col items-start gap-4 hover:bg-indigo-600/20 transition-all group relative overflow-hidden shadow-[0_0_40px_rgba(79,70,229,0.1)]"
                                         >
                                             <div className="absolute top-4 right-4 text-indigo-500/20 group-hover:text-indigo-500/40 transition-colors">
@@ -379,29 +378,29 @@ export const App = () => {
                                             </div>
                                             <div className="flex items-center gap-3 font-black text-xl">
                                                 <Zap size={22} className="text-amber-400 fill-amber-400 animate-pulse" />
-                                                是否深入解析？
+                                                🔮 是否深度白話解析？
                                             </div>
                                             <p className="text-[14px] text-indigo-300/80 leading-relaxed text-left font-serif italic">
-                                                啟動 Pro 思考模組。我將用「白話文」深度拆解命盤能量，為您提供不帶艱澀術語、直觀且易操作的戰略指導。
+                                                啟動 Pro 思考模組。我將完全摒棄術語，改用最直白的現代語言拆解能量，提供您看一眼就能立刻決策的行動指南。
                                             </p>
                                             <div className="flex items-center gap-2 text-[10px] font-black text-indigo-400 uppercase tracking-widest mt-2 border-t border-indigo-500/20 pt-4 w-full">
-                                                <Brain size={14}/> 深度白話解析模式
+                                                <Brain size={14}/> 深度解析模式 (白話導向)
                                             </div>
                                         </button>
 
                                         <div className="flex flex-col gap-4">
                                             <button 
-                                                onClick={() => performQuery("請列出此戰略在接下來三個月的具體行動時間表建議")}
+                                                onClick={() => performQuery("請針對當前的戰略方針，列出未來三個月具體的行動時間表")}
                                                 className="px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold flex items-center justify-between hover:bg-indigo-600/20 hover:border-indigo-500/30 transition-all group"
                                             >
-                                                <span>行動方案：未來三月執行日程</span>
+                                                <span>行動方案：未來三月日程</span>
                                                 <ArrowRight size={16} className="text-slate-500 group-hover:text-indigo-400 transform group-hover:translate-x-1 transition-all" />
                                             </button>
                                             <button 
-                                                onClick={() => performQuery("這份解析中提到的潛在風險，該如何透過具體的行為或心態調整進行規避？")}
+                                                onClick={() => performQuery("根據命盤配置，我該如何具體調整心態或行為來避開潛在風險？")}
                                                 className="px-6 py-5 bg-white/5 border border-white/10 rounded-2xl text-slate-300 text-sm font-bold flex items-center justify-between hover:bg-indigo-600/20 hover:border-indigo-500/30 transition-all group"
                                             >
-                                                <span>風險規避：具體改運建議</span>
+                                                <span>風險規避：具體避險指南</span>
                                                 <ArrowRight size={16} className="text-slate-500 group-hover:text-indigo-400 transform group-hover:translate-x-1 transition-all" />
                                             </button>
                                         </div>
@@ -427,7 +426,7 @@ export const App = () => {
                                         </div>
                                         {streamingTitle && (
                                             <div className="pt-6 border-t border-white/5 animate-fade-in">
-                                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">預覽核心戰略 (Preview)...</p>
+                                                <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">核心戰略預覽 (Streaming)...</p>
                                                 <h3 className="text-2xl font-serif font-black text-indigo-400 italic">「{streamingTitle}」</h3>
                                             </div>
                                         )}
@@ -446,7 +445,7 @@ export const App = () => {
                     <div className="w-full flex flex-col items-center gap-10 py-10 bg-white/5 rounded-[4rem]">
                         <div className="text-center space-y-2">
                             <h2 className="text-2xl font-serif font-black italic text-white">報告預覽區</h2>
-                            <p className="text-slate-400 text-xs">下載 PDF 以獲取最佳排版。封面將自動獨立，內容區塊不會被攔腰切斷。</p>
+                            <p className="text-slate-400 text-xs">下載 PDF 以獲取最佳排版。封面將自動獨立，內容主題會保持完整，不會在中間被切斷。</p>
                         </div>
                         <div className="shadow-2xl origin-top bg-white overflow-hidden rounded-xl border border-slate-200" style={{ transform: 'scale(0.8)', width: '794px' }}>
                             <ProfessionalPDFTemplate id="report-preview-view" messages={messages} chart={chart} />
@@ -466,7 +465,7 @@ export const App = () => {
                 </div>
             )}
 
-            {/* 導出用的隱藏節點 */}
+            {/* 用於 PDF 導出的隱藏內容容器 */}
             <div className="fixed" style={{ top: '-9999px', left: '-9999px', zIndex: -1000 }}>
                 <div style={{ width: '794px', backgroundColor: '#ffffff' }}>
                     {chart && <ProfessionalPDFTemplate id="report-pdf-export-source" messages={messages} chart={chart} />}
